@@ -1,0 +1,40 @@
+id: missing-rate-limit-001
+title: "Missing Rate Limiting on Authentication Endpoint"
+severity: medium
+category: access-control
+maps_to:
+  owasp:
+    - A04:2021
+detection:
+  extensions:
+    - ".js"
+    - ".ts"
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(app|router)\.(get|post|use)\s*\(\s*[''"`][^''"`]*(\/login|\/auth|\/token|\/password)'
+      description: "Route registration whose path contains an authentication-related segment"
+    - pattern: '(rateLimit|rateLimiter|throttle|slowDown|limiter)'
+      flags: "i"
+      negate: true
+      description: "No rate-limiting middleware identifier present on the same line"
+description: >
+  Detects route handler registrations (app.get, app.post, app.use, router.get,
+  router.post) whose path argument contains /login, /auth, /token, or /password
+  and whose same line contains none of the identifiers rateLimit, rateLimiter,
+  throttle, slowDown, or limiter.
+
+  Known v0.1 scope limitation: if global rate-limit middleware is registered via
+  app.use(rateLimit(...)) before route definitions in the same file, this rule treats
+  all subsequent routes in that file as covered. Cross-file global middleware detection
+  is out of scope for v0.1.
+remediation: "Apply a rate-limiting middleware to authentication endpoints. Example: app.post('/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }), loginHandler)."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.ts"
+    description: "Login route registered without any rate-limiting middleware"
+    code: 'app.post("/login", loginHandler);'
+  - type: true_negative
+    fixture: "safe.ts"
+    description: "Login route registered with rateLimit middleware on the same line"
+    code: 'app.post("/login", rateLimit({ windowMs: 900000, max: 10 }), loginHandler);'

@@ -1,0 +1,45 @@
+id: pii-in-logs-001
+title: PII Logged in Plaintext
+severity: high
+category: logging
+maps_to:
+  owasp:
+    - A09:2021
+  pdpa: "Section 9, Personal Data Protection Act 2010 (as amended)"
+detection:
+  extensions:
+    - ".js"
+    - ".ts"
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: "console\\.(log|error|warn)\\(.*[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
+      description: "console call with an email address pattern in arguments"
+    - pattern: "console\\.(log|error|warn)\\(.*\\d{6}-\\d{2}-\\d{4}"
+      description: "console call with a Malaysian IC number pattern"
+    - pattern: "console\\.(log|error|warn)\\(.*(\\+?60|0)[1-9]\\d{7,9}"
+      description: "console call with a Malaysian phone number pattern"
+    - pattern: "console\\.(log|error|warn)\\(.*\\b(password|token|secret|nric|ic_no)\\b"
+      description: "console call with a PII-indicative variable name"
+description: >
+  Detects console.log/error/warn calls that may log personal data in plaintext, including
+  email addresses, Malaysian IC numbers, phone numbers, or variables with PII-indicative
+  names. Logging PII in plaintext violates the Section 9 Security Principle of the PDPA
+  (as amended), which requires data controllers to take practical steps to protect personal
+  data from unauthorised access or disclosure. The 2024 Amendment Act extended Section 9
+  to directly bind data processors effective 1 April 2025, making plaintext PII logging a
+  direct statutory breach risk for processors as well as controllers.
+
+  ponytail: patterns are line-level heuristics; template literals spanning multiple lines
+  or indirect variable passing may produce false negatives. Upgrade path: AST-based taint
+  analysis in v0.2.
+remediation: "Redact or mask PII before logging. Use a structured logger with a data-scrubbing filter. Never log raw email addresses, IC numbers, phone numbers, passwords, or tokens."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.ts"
+    description: "console.log call with an email address in the output"
+    code: 'console.log("User logged in:", "user@example.com");'
+  - type: true_negative
+    fixture: "safe.ts"
+    description: "console.log call with only non-PII data (user ID)"
+    code: 'console.log("User logged in:", user.id);'

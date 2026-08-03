@@ -1,0 +1,37 @@
+id: wildcard-cors-001
+title: "Wildcard CORS with Credentials Enabled"
+severity: high
+category: cors
+maps_to:
+  owasp:
+    - A05:2021
+detection:
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "Access-Control-Allow-Origin[^\\n]*\\*"
+      flags: "i"
+      description: "Response sets Access-Control-Allow-Origin to wildcard *"
+    - pattern: "Access-Control-Allow-Credentials[^\\n]*\\btrue\\b"
+      flags: "i"
+      description: "Response also sets Access-Control-Allow-Credentials to true"
+description: >
+  Detects HTTP responses that set both Access-Control-Allow-Origin: * and
+  Access-Control-Allow-Credentials: true. Browsers reject this combination per the
+  CORS specification, but the misconfiguration may still be accepted by some runtimes
+  or middleware layers. The combination is always wrong — either restrict the origin
+  to a specific value or disable credentials.
+remediation: "Replace the wildcard origin with a specific allowed origin (e.g. 'https://your-app.com') when credentials are required. Never combine Access-Control-Allow-Origin: * with Access-Control-Allow-Credentials: true."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.ts"
+    description: "Response sets both wildcard CORS origin and allows credentials"
+    code: |
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+  - type: true_negative
+    fixture: "safe.ts"
+    description: "Wildcard CORS set without credentials enabled"
+    code: |
+      res.setHeader("Access-Control-Allow-Origin", "*");

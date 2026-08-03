@@ -1,0 +1,41 @@
+id: missing-breach-log-001
+title: "Data Export/Deletion Route Missing Audit Log"
+severity: medium
+category: data-lifecycle
+maps_to:
+  owasp:
+    - A09:2021
+  pdpa: "Section 12B, introduced by the Personal Data Protection (Amendment) Act 2024"
+detection:
+  extensions:
+    - ".js"
+    - ".ts"
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "(app|router)\\.(get|post|delete|put)\\s*\\(\\s*['\"][^'\"]*\\/(export|delete-account|gdpr|data-request)[^'\"]*['\"]"
+      flags: "i"
+      description: "Route handler for a data export, deletion, or GDPR/data-request path"
+    - pattern: "(audit|auditLog|logEvent|logIncident)\\s*\\("
+      flags: "i"
+      negate: true
+      description: "No audit/log function call found in the file (heuristic; cross-function detection is out of scope)"
+description: >
+  Detects route handlers for data export, deletion, or data-subject-request paths that have
+  no corresponding audit log call anywhere in the same file. This maps to the record-keeping
+  and breach-notification obligations introduced by Section 12B of the PDPA (as amended by
+  the 2024 Amendment Act). NOTE: This rule is intentionally documented as heuristic and
+  higher-false-positive-risk than the other rules. Static analysis cannot confirm
+  audit-logging coverage across function boundaries or imported modules; cross-function and
+  cross-file audit-log detection is out of scope for v0.1. Treat findings as an indicator
+  to review manually, not a confirmed vulnerability.
+remediation: "Add an audit log call within or immediately after the route handler for data export, deletion, or data-request operations. Example: auditLog({ action: 'data-export', userId: req.user.id, timestamp: new Date().toISOString() })."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.ts"
+    description: "/export route with no auditLog call in the file"
+    code: 'app.get("/export", (req, res) => { res.json(userData); });'
+  - type: true_negative
+    fixture: "safe.ts"
+    description: "/export route with auditLog call present"
+    code: 'app.get("/export", (req, res) => { auditLog({ action: "export" }); res.json(userData); });'

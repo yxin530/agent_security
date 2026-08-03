@@ -1,0 +1,19 @@
+# Local/tooling files
+.kiro/
+agent.md
+architecture.md
+
+# Dependencies and generated build output
+node_modules/
+dist/
+
+# Logs and local environment files
+*.log
+.env
+.env.*
+!.env.example
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
