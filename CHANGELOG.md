@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+
+- Fixed invalid package metadata placement so npm and CI can parse `package.json`.
+
 ## 0.6.0
 
 - Added validated rule-embedded AI Guidance blocks for the priority rule families.
