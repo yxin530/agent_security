@@ -1,6 +1,6 @@
 {
-  "name": "agent-security-engine",
-  "version": "0.6.1",
+  "name": "@yxin530/agent-security-engine",
+  "version": "0.6.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yxin530/agent_security.git"
@@ -8,6 +8,9 @@
   "homepage": "https://github.com/yxin530/agent_security",
   "bugs": {
     "url": "https://github.com/yxin530/agent_security/issues"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "main": "dist/engine/scan.js",
   "bin": {

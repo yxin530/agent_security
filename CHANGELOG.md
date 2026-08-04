@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2
+
+- Configured scoped GitHub Packages publishing as `@yxin530/agent-security-engine`.
+
 ## 0.6.1
 
 - Fixed invalid package metadata placement so npm and CI can parse `package.json`.
