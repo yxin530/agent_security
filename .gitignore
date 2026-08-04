@@ -2,6 +2,7 @@
 .kiro/
 agent.md
 architecture.md
+requirements.md
 
 # Dependencies and generated build output
 node_modules/
