@@ -1,11 +1,13 @@
-id: missing-rate-limit-001
+id: missing-rate-limit-js-001
 title: "Missing Rate Limiting on Authentication Endpoint"
 severity: medium
 category: access-control
+scope: language-specific
 maps_to:
   owasp:
     - A04:2021
 detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
   extensions:
     - ".js"
     - ".ts"

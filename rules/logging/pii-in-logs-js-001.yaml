@@ -1,12 +1,14 @@
-id: pii-in-logs-001
+id: pii-in-logs-js-001
 title: PII Logged in Plaintext
 severity: high
 category: logging
+scope: language-specific
 maps_to:
   owasp:
     - A09:2021
   pdpa: "Section 9, Personal Data Protection Act 2010 (as amended)"
 detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
   extensions:
     - ".js"
     - ".ts"

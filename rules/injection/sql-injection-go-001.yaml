@@ -1,0 +1,28 @@
+id: sql-injection-go-001
+title: "SQL Injection via Go String Construction"
+severity: high
+category: injection
+scope: language-specific
+maps_to:
+  owasp: ["A03:2021"]
+detection:
+  file_patterns: ["**/*.go"]
+  extensions: [".go"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: 'fmt\.Sprintf\s*\(\s*"(SELECT|INSERT|UPDATE|DELETE)\s+[^"\n]*%[svd]'
+      flags: "i"
+    - pattern: '"(SELECT|INSERT|UPDATE|DELETE)\s+[^"\n]*"\s*\+\s*[a-zA-Z_]\w*'
+      flags: "i"
+description: "Detects SQL strings assembled with fmt.Sprintf or concatenation of a non-literal Go value."
+remediation: "Use database/sql parameter placeholders and pass values as query arguments."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.go"
+    description: "fmt.Sprintf inserts a variable into SQL"
+    code: 'q := fmt.Sprintf("SELECT * FROM users WHERE id = %s", userID)'
+  - type: true_negative
+    fixture: "safe.go"
+    description: "Go query uses a placeholder argument"
+    code: 'db.Query("SELECT * FROM users WHERE id = ?", userID)'

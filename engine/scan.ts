@@ -27,6 +27,21 @@ function walkFiles(dir: string): string[] {
   return files;
 }
 
+function isText(content: Buffer): boolean {
+  return !content.includes(0);
+}
+
+function matchesPattern(relativePath: string, pattern: string): boolean {
+  const normalized = relativePath.split(path.sep).join('/');
+  const parts = pattern.split('/');
+  const expression = parts.map(part => {
+    if (part === '**') return '(?:.*/)?';
+    return part.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*');
+  }).join('');
+  const regex = '^' + expression + '$';
+  return new RegExp(regex).test(normalized);
+}
+
 function conditionMatches(condition: DetectionCondition, text: string): boolean {
   let regex: RegExp;
   try {
@@ -85,11 +100,17 @@ export function scan(rulesDir: string, targetDir: string): Finding[] {
   const rules = loadRules(rulesDir);
   const findings: Finding[] = [];
   for (const file of walkFiles(targetDir)) {
+    const raw = fs.readFileSync(file);
+    if (!isText(raw)) continue;
     const extension = path.extname(file);
-    const content = fs.readFileSync(file, 'utf8');
+    const relative = path.relative(targetDir, file);
+    const content = raw.toString('utf8');
     const lines = content.split(/\r?\n/);
     for (const rule of rules) {
-      if (!rule.detection.extensions.includes(extension)) continue;
+      if (rule.scope === 'language-specific') {
+        const patterns = rule.detection.file_patterns ?? [];
+        if (!patterns.some(pattern => matchesPattern(relative, pattern))) continue;
+      }
       const match = matchingLine(rule, lines);
       if (!match) continue;
       findings.push({ ruleId: rule.id, title: rule.title, severity: rule.severity, category: rule.category,

@@ -1,0 +1,19 @@
+id: wildcard-cors-php-001
+title: "Wildcard CORS with Credentials in Laravel"
+severity: high
+category: cors
+scope: language-specific
+maps_to: { owasp: ["A05:2021"] }
+detection:
+  file_patterns: ["**/*.php"]
+  extensions: [".php"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "allowed_origins['\"]?\\s*=>\\s*\\[\\s*['\"]\\*"
+    - pattern: "supports_credentials['\"]?\\s*=>\\s*true"
+description: "Detects Laravel CORS configuration allowing every origin while enabling credentials."
+remediation: "Replace the wildcard origin with an explicit allowlist."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.php, description: "Laravel wildcard origin and credentials", code: "'allowed_origins' => ['*'], 'supports_credentials' => true" }
+  - { type: true_negative, fixture: safe.php, description: "Laravel explicit origin", code: "'allowed_origins' => ['https://example.com'], 'supports_credentials' => true" }

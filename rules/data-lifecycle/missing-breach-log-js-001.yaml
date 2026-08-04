@@ -1,12 +1,14 @@
-id: missing-breach-log-001
+id: missing-breach-log-js-001
 title: "Data Export/Deletion Route Missing Audit Log"
 severity: medium
 category: data-lifecycle
+scope: language-specific
 maps_to:
   owasp:
     - A09:2021
   pdpa: "Section 12B, introduced by the Personal Data Protection (Amendment) Act 2024"
 detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
   extensions:
     - ".js"
     - ".ts"

@@ -1,0 +1,19 @@
+id: pii-in-logs-py-001
+title: "PII in Python Logs"
+severity: high
+category: logging
+scope: language-specific
+maps_to: { owasp: ["A09:2021"] }
+detection:
+  file_patterns: ["**/*.py"]
+  extensions: [".py"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(print|logging)[^\n]*(example\.com|\d{6}-\d{2}-\d{4}|\+?60)'
+      flags: "i"
+description: "Applies the PII patterns defined by pii-pattern-001 to Python print and logging calls."
+remediation: "Redact personal data before printing or logging it."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.py, description: "Python print contains email", code: "print('user@example.com')" }
+  - { type: true_negative, fixture: safe.py, description: "Python log contains an internal id", code: "print(request_id)" }

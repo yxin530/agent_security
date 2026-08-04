@@ -1,0 +1,21 @@
+id: missing-rate-limit-php-001
+title: "Missing Rate Limiting on Laravel Authentication Route"
+severity: medium
+category: access-control
+scope: language-specific
+maps_to: { owasp: ["A04:2021"] }
+detection:
+  file_patterns: ["**/*.php"]
+  extensions: [".php"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: 'Route::(get|post).*["'']/(login|auth|token|password)'
+    - pattern: '(throttle|rateLimit|RateLimiter)'
+      negate: true
+      flags: "i"
+description: "Detects Laravel authentication routes without a visible rate-limiting identifier."
+remediation: "Attach Laravel throttle middleware to the authentication route."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.php, description: "Laravel login route without throttle", code: "Route::post('/login', [AuthController::class, 'login']);" }
+  - { type: true_negative, fixture: safe.php, description: "Laravel login route with throttle", code: "Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');" }

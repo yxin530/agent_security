@@ -1,0 +1,21 @@
+id: missing-rate-limit-go-001
+title: "Missing Rate Limiting on Go Authentication Handler"
+severity: medium
+category: access-control
+scope: language-specific
+maps_to: { owasp: ["A04:2021"] }
+detection:
+  file_patterns: ["**/*.go"]
+  extensions: [".go"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(HandleFunc|Handle).*["'']/(login|auth|token|password)'
+    - pattern: '(rateLimit|RateLimit|throttle|limiter)'
+      negate: true
+      flags: "i"
+description: "Detects Go authentication handler registration without a visible limiter."
+remediation: "Wrap the authentication handler with a rate-limiting middleware."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.go, description: "Go login handler without limiter", code: "http.HandleFunc('/login', loginHandler)" }
+  - { type: true_negative, fixture: safe.go, description: "Go login handler with limiter", code: "http.Handle('/login', rateLimit(loginHandler))" }

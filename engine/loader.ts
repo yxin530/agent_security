@@ -19,6 +19,7 @@ export interface EntropyCheck {
 
 export interface Detection {
   extensions: string[];
+  file_patterns?: string[];
   conditions: DetectionCondition[];
   logic?: 'AND' | 'OR';
   scope?: 'line' | 'file';
@@ -42,12 +43,15 @@ export interface Rule {
   title: string;
   severity: 'critical' | 'high' | 'medium' | 'low' | 'informational';
   category: string;
+  scope: 'language-agnostic' | 'language-specific';
   maps_to: MapsTo;
   detection: Detection;
   description: string;
   remediation: string;
   test_cases: TestCase[];
 }
+
+export type AliasMap = Record<string, string>;
 
 // ── Internals ─────────────────────────────────────────────────────────────────
 
@@ -90,6 +94,19 @@ function walkYamlFiles(dir: string): string[] {
     }
   }
   return results;
+}
+
+function validateAliases(rulesDir: string, rules: Rule[]): void {
+  const aliasPath = path.join(rulesDir, 'aliases.json');
+  if (!fs.existsSync(aliasPath)) throw new LoadError(`Missing alias map: ${aliasPath}`);
+  let aliases: unknown;
+  try { aliases = JSON.parse(fs.readFileSync(aliasPath, 'utf8')); }
+  catch (error) { throw new LoadError(`Invalid aliases.json: ${(error as Error).message}`); }
+  if (!aliases || typeof aliases !== 'object' || Array.isArray(aliases)) throw new LoadError('aliases.json must be an object');
+  const ids = new Set(rules.map(rule => rule.id));
+  for (const [oldId, newId] of Object.entries(aliases as AliasMap)) {
+    if (typeof newId !== 'string' || !ids.has(newId)) throw new LoadError(`Alias '${oldId}' maps to missing rule '${newId}'`);
+  }
 }
 
 function processFile(
@@ -147,6 +164,15 @@ function processFile(
     return null;
   }
 
+  if (rule.scope === 'language-specific' && (!rule.detection.file_patterns || rule.detection.file_patterns.length === 0)) {
+    violations.push({ filePath, fieldPath: 'detection.file_patterns', message: 'required and non-empty for language-specific rules' });
+    return null;
+  }
+  if (rule.scope === 'language-agnostic' && rule.detection.file_patterns !== undefined) {
+    violations.push({ filePath, fieldPath: 'detection.file_patterns', message: 'must be omitted for language-agnostic rules' });
+    return null;
+  }
+
   return rule;
 }
 
@@ -184,6 +210,7 @@ export function loadRules(rulesDir: string): Rule[] {
     throw new LoadError(`Rule validation failed:\n${allFailures.join('\n')}`);
   }
 
+  validateAliases(rulesDir, rules);
   return rules;
 }
 

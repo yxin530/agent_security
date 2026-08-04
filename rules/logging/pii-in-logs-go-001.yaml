@@ -1,0 +1,19 @@
+id: pii-in-logs-go-001
+title: "PII in Go Logs"
+severity: high
+category: logging
+scope: language-specific
+maps_to: { owasp: ["A09:2021"] }
+detection:
+  file_patterns: ["**/*.go"]
+  extensions: [".go"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(log|fmt)[^\n]*(example\.com|\d{6}-\d{2}-\d{4}|\+?60)'
+      flags: "i"
+description: "Applies the PII patterns defined by pii-pattern-001 to Go logging calls."
+remediation: "Redact personal data before writing Go logs."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.go, description: "Go log contains email", code: "log.Println('user@example.com')" }
+  - { type: true_negative, fixture: safe.go, description: "Go log contains an internal id", code: "log.Println(requestID)" }

@@ -1,11 +1,13 @@
-id: wildcard-cors-001
+id: wildcard-cors-js-001
 title: "Wildcard CORS with Credentials Enabled"
 severity: high
 category: cors
+scope: language-specific
 maps_to:
   owasp:
     - A05:2021
 detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
   extensions: [".js", ".ts"]
   scope: file
   logic: AND

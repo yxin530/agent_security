@@ -1,11 +1,13 @@
-id: sql-injection-001
+id: sql-injection-js-001
 title: "SQL Injection via String Concatenation"
 severity: high
 category: injection
+scope: language-specific
 maps_to:
   owasp:
     - A03:2021
 detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
   extensions: [".js", ".ts", ".py"]
   scope: line
   logic: OR

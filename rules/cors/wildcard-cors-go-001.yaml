@@ -1,0 +1,19 @@
+id: wildcard-cors-go-001
+title: "Wildcard CORS with Credentials in Go"
+severity: high
+category: cors
+scope: language-specific
+maps_to: { owasp: ["A05:2021"] }
+detection:
+  file_patterns: ["**/*.go"]
+  extensions: [".go"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: 'Access-Control-Allow-Origin",?\s*,?\s*"\*'
+    - pattern: 'Access-Control-Allow-Credentials",?\s*,?\s*"true'
+description: "Detects Go HTTP handlers setting wildcard origin and credential headers together."
+remediation: "Set an explicit allowed origin when credentials are enabled."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.go, description: "Go handler sets both headers", code: 'w.Header().Set("Access-Control-Allow-Origin", "*"); w.Header().Set("Access-Control-Allow-Credentials", "true")' }
+  - { type: true_negative, fixture: safe.go, description: "Go handler uses explicit origin", code: 'w.Header().Set("Access-Control-Allow-Origin", "https://example.com")' }

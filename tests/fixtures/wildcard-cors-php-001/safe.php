@@ -1,0 +1,1 @@
+<?php return ['allowed_origins' => ['https://example.com'], 'supports_credentials' => true];

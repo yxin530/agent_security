@@ -1,0 +1,28 @@
+id: sql-injection-php-001
+title: "SQL Injection via PHP String Concatenation"
+severity: high
+category: injection
+scope: language-specific
+maps_to:
+  owasp: ["A03:2021"]
+detection:
+  file_patterns: ["**/*.php"]
+  extensions: [".php"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\s+.+["'']\s*\.\s*\$[a-zA-Z_]\w*'
+      flags: "i"
+    - pattern: '"(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\s+[^"\n]*\$[a-zA-Z_]\w*'
+      flags: "i"
+description: "Detects SQL strings concatenated with PHP variables or interpolated into double-quoted SQL strings."
+remediation: "Use parameterised queries or an ORM instead of interpolating request data into SQL."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.php"
+    description: "PHP SQL string concatenates a variable"
+    code: '$q = "SELECT * FROM users WHERE id = " . $userId;'
+  - type: true_negative
+    fixture: "safe.php"
+    description: "PHP query uses a placeholder"
+    code: '$db->query("SELECT * FROM users WHERE id = ?", [$userId]);'

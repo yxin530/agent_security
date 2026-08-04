@@ -1,0 +1,19 @@
+id: pii-in-logs-php-001
+title: "PII in PHP Logs"
+severity: high
+category: logging
+scope: language-specific
+maps_to: { owasp: ["A09:2021"] }
+detection:
+  file_patterns: ["**/*.php"]
+  extensions: [".php"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(error_log|Log)[^\n]*(example\.com|\d{6}-\d{2}-\d{4}|\+?60)'
+      flags: "i"
+description: "Applies the PII patterns defined by pii-pattern-001 to PHP error_log and Log calls."
+remediation: "Redact personal data before calling error_log or Log methods."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.php, description: "PHP error_log contains email", code: "error_log('user@example.com');" }
+  - { type: true_negative, fixture: safe.php, description: "PHP log contains an internal id", code: "error_log($requestId);" }

@@ -1,0 +1,2 @@
+package main
+var q = fmt.Sprintf("SELECT * FROM users WHERE id = %s", userID)

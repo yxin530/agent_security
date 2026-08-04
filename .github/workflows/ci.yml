@@ -21,3 +21,8 @@ jobs:
       - run: npm run validate:rules
       - run: npm run test:rules
       - run: npm test
+      - name: Verify documented v0.2 coverage
+        run: |
+          for rule in sql-injection-php-001 sql-injection-go-001 wildcard-cors-php-001 wildcard-cors-go-001 missing-rate-limit-php-001 missing-rate-limit-go-001 pii-in-logs-php-001 pii-in-logs-go-001 pii-in-logs-py-001; do
+            grep -q "$rule" README.md
+          done
