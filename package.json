@@ -3,15 +3,27 @@
   "version": "0.6.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yxin530/agent_security.git"
+    "url": "git+https://github.com/yxin530/agent_security.git"
   },
   "homepage": "https://github.com/yxin530/agent_security",
   "bugs": {
     "url": "https://github.com/yxin530/agent_security/issues"
   },
   "main": "dist/engine/scan.js",
-  "bin": { "agent-security-engine": "bin/agent-security.js", "agent-security-monitor": "dist/monitor/index.js" },
-  "files": ["dist", "bin", "monitor", "tests/fixtures", "tests/adversarial", "README.md", "CHANGELOG.md", "LICENSE"],
+  "bin": {
+    "agent-security-engine": "bin/agent-security.js",
+    "agent-security-monitor": "dist/monitor/index.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "monitor",
+    "tests/fixtures",
+    "tests/adversarial",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "scan": "npm run build --silent && node dist/engine/scan.js",
     "validate:rules": "npm run build --silent && node dist/engine/loader.js --validate",
@@ -30,4 +42,13 @@
     "ts-node": "10.9.2",
     "typescript": "7.0.2"
   }
+}
+
+"repository": {
+  "type": "git",
+  "url": "https://github.com/yxin530/agent_security.git"
+},
+"homepage": "https://github.com/yxin530/agent_security",
+"bugs": {
+  "url": "https://github.com/yxin530/agent_security/issues"
 }
