@@ -12,7 +12,7 @@ The project uses a hybrid design:
 
 ```bash
 npm ci
-npm run scan -- --target <path>
+npx agent-security-engine scan --target <path>
 npm run validate:rules
 npm run test:rules
 ```
@@ -31,6 +31,16 @@ The scanner exits with code 0 when no findings are emitted and code 1 when findi
 | `pii-in-logs-js-001`, `pii-in-logs-py-001`, `pii-in-logs-php-001`, `pii-in-logs-go-001` | high | A09:2021 | — |
 | `missing-breach-log-js-001` | medium | A09:2021 | Section 12B |
 
+Agent-threat rules use OWASP LLM and MITRE ATLAS mappings:
+
+| Category | Rules |
+|---|---|
+| Agent manipulation | `unvalidated-tool-args-001` |
+| Data poisoning | `unsanitized-rag-write-001` |
+| Prompt injection | `unescaped-prompt-concat-001` |
+| Model security | `hardcoded-llm-key-001`, `permissive-mcp-grant-001` |
+| Model abuse | `no-llm-rate-limit-001`, `unvalidated-agent-write-001` |
+
 ## Coverage
 
 | Language | Shipped language-specific coverage | Planned |
@@ -41,6 +51,6 @@ The scanner exits with code 0 when no findings are emitted and code 1 when findi
 | Python | PII log-call variant; SQL injection remains v0.1-supported | — |
 | Ruby, Java, Rust, C#/.NET | None | Future versions |
 
-Read the [PDPA mapping notes](docs/legal/pdpa-2024-mapping.md) and the [PDPA security audit skill](skills/pdpa-security-audit/SKILL.md) before relying on legal mappings or agent-generated explanations.
+Skills: [general security audit](skills/security-audit/SKILL.md) for OWASP/ATLAS framing, or [PDPA security audit](skills/pdpa-security-audit/SKILL.md) for Malaysian compliance framing. Read the [PDPA mapping notes](docs/legal/pdpa-2024-mapping.md), [OWASP web docs](docs/owasp/web-top-10.md), [OWASP LLM docs](docs/owasp/llm-top-10.md), and [MITRE ATLAS docs](docs/frameworks/mitre-atlas.md) before relying on mappings or agent-generated explanations.
 
 This is a security review aid, not legal advice. The v0.2 engine is regex-based and only claims the language/framework coverage shown above.

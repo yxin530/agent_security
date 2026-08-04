@@ -1,0 +1,24 @@
+id: unescaped-prompt-concat-001
+title: "Unescaped User Input in LLM Prompt"
+severity: high
+category: prompt-injection
+scope: language-specific
+maps_to:
+  owasp: ["A03:2021"]
+  owasp_llm: "LLM01:2025"
+  atlas: "AML.T0051"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(system|developer|prompt)\s*=\s*[^\n]*[+`]\s*(userInput|req\.body|request\.data|user_content)'
+      flags: "i"
+    - pattern: '(system|developer|prompt)[^\n]*\$\{\s*(userInput|req\.body|request\.data)'
+      flags: "i"
+description: "Detects direct interpolation or concatenation of untrusted input into a system/developer prompt string."
+remediation: "Use structured message roles and delimit untrusted content as data rather than prompt instructions."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "User input concatenated into system prompt", code: "const prompt = 'system: ' + userInput;" }
+  - { type: true_negative, fixture: safe.ts, description: "Structured system and user messages", code: "client.messages.create({ messages: [{ role: 'user', content: userInput }] });" }

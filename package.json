@@ -1,14 +1,15 @@
 {
   "name": "agent-security-engine",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.3.0",
   "main": "dist/engine/scan.js",
+  "bin": { "agent-security-engine": "bin/agent-security.js" },
+  "files": ["dist", "bin", "README.md", "LICENSE"],
   "scripts": {
     "scan": "npm run build --silent && node dist/engine/scan.js",
     "validate:rules": "npm run build --silent && node dist/engine/loader.js --validate",
     "test:rules": "npm run build --silent && node dist/engine/test-runner.js",
     "test": "node --test",
-    "build": "tsc"
+    "build": "tsc && mkdir -p dist/rules dist/docs/owasp dist/docs/frameworks && cp -R rules/. dist/rules/ && cp docs/owasp/*.md dist/docs/owasp/ && cp docs/frameworks/*.md dist/docs/frameworks/"
   },
   "dependencies": {
     "ajv": "8.20.0",

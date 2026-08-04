@@ -29,6 +29,8 @@ export interface Detection {
 export interface MapsTo {
   owasp: string[];
   pdpa?: string;
+  owasp_llm?: string;
+  atlas?: string;
 }
 
 export interface TestCase {
@@ -109,6 +111,27 @@ function validateAliases(rulesDir: string, rules: Rule[]): void {
   }
 }
 
+function validateFrameworkDocs(rulesDir: string, rules: Rule[]): void {
+  const docsRoot = path.join(path.dirname(rulesDir), 'docs');
+  const checks: Array<[string, string, (rule: Rule) => string | undefined]> = [
+    [path.join(docsRoot, 'owasp', 'web-top-10.md'), 'maps_to.owasp', rule => rule.maps_to.owasp.join(' ')],
+    [path.join(docsRoot, 'owasp', 'llm-top-10.md'), 'maps_to.owasp_llm', rule => rule.maps_to.owasp_llm],
+    [path.join(docsRoot, 'frameworks', 'mitre-atlas.md'), 'maps_to.atlas', rule => rule.maps_to.atlas],
+  ];
+  const failures: string[] = [];
+  for (const [docPath, field, getValues] of checks) {
+    if (!fs.existsSync(docPath)) { failures.push(`${field}: missing documentation file ${docPath}`); continue; }
+    const text = fs.readFileSync(docPath, 'utf8');
+    for (const rule of rules) {
+      const values = getValues(rule);
+      if (!values) continue;
+      const individual = field === 'maps_to.owasp' ? rule.maps_to.owasp : [values];
+      for (const value of individual) if (!text.includes(value)) failures.push(`${rule.id}: ${field} '${value}' missing from ${docPath}`);
+    }
+  }
+  if (failures.length) throw new LoadError(`Framework documentation validation failed:\n${failures.join('\n')}`);
+}
+
 function processFile(
   filePath: string,
   violations: Violation[],
@@ -146,6 +169,11 @@ function processFile(
   }
 
   const rule = doc as Rule;
+
+  if (filePath.includes(`${path.sep}agent-threats${path.sep}`) && !rule.maps_to.owasp_llm && !rule.maps_to.atlas) {
+    violations.push({ filePath, fieldPath: 'maps_to', message: 'agent-threat rules require maps_to.owasp_llm or maps_to.atlas' });
+    return null;
+  }
 
   // Programmatic: must have ≥1 true_positive and ≥1 true_negative
   if (!rule.test_cases.some(tc => tc.type === 'true_positive')) {
@@ -211,6 +239,7 @@ export function loadRules(rulesDir: string): Rule[] {
   }
 
   validateAliases(rulesDir, rules);
+  validateFrameworkDocs(rulesDir, rules);
   return rules;
 }
 

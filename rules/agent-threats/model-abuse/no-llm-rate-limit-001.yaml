@@ -1,0 +1,25 @@
+id: no-llm-rate-limit-001
+title: "LLM Endpoint Without Rate Limit"
+severity: medium
+category: model-abuse
+scope: language-specific
+maps_to:
+  owasp: ["A04:2021"]
+  owasp_llm: "LLM10:2025"
+  atlas: "AML.T0043"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(app|router)\.(get|post)\s*\([^\n]*(chat|completion|generate|llm)'
+      flags: "i"
+    - pattern: '(rateLimit|throttle|limiter|costCeiling|quota)'
+      flags: "i"
+      negate: true
+description: "Detects an exposed LLM endpoint without a visible request limiter or cost ceiling."
+remediation: "Apply per-user rate limits and a server-side cost or token ceiling."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Chat endpoint invokes an LLM without limiter", code: "app.post('/chat', (req, res) => client.messages.create(req.body));" }
+  - { type: true_negative, fixture: safe.ts, description: "Chat endpoint has a limiter", code: "app.post('/chat', rateLimit(), (req, res) => client.messages.create(req.body));" }

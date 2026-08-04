@@ -1,0 +1,22 @@
+id: unsanitized-rag-write-001
+title: "Unsanitized User Content Written to RAG Store"
+severity: high
+category: data-poisoning
+scope: language-specific
+maps_to:
+  owasp: ["A05:2021"]
+  owasp_llm: "LLM03:2025"
+  atlas: "AML.T0020"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(vector(Store|DB)|pinecone|chroma|qdrant|ragIndex)\s*\.?(add|insert|upsert|write)\s*\(\s*(req\.body|userInput|user_content|request\.data)'
+      flags: "i"
+description: "Detects user-controlled content written to a vector or RAG store without a visible sanitization or provenance operation."
+remediation: "Sanitize content and attach trustworthy provenance metadata before indexing it."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Request content upserted to vector store", code: "vectorStore.upsert(req.body.content);" }
+  - { type: true_negative, fixture: safe.ts, description: "Content sanitized and tagged before indexing", code: "vectorStore.upsert({ text: sanitize(req.body.content), provenance: 'verified' });" }

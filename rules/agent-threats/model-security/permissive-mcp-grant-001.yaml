@@ -1,0 +1,24 @@
+id: permissive-mcp-grant-001
+title: "Permissive MCP Tool Grant"
+severity: high
+category: model-security
+scope: language-agnostic
+maps_to:
+  owasp: ["A05:2021"]
+  owasp_llm: "LLM06:2025"
+  atlas: "AML.T0048"
+detection:
+  extensions: [".json", ".yaml", ".yml"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: '(allowedTools|tools|toolScope)[^\n]*["'']\*["'']'
+      flags: "i"
+    - pattern: '(auth|allowlist|allowedOrigins|requireAuth)'
+      flags: "i"
+      negate: true
+description: "Detects an unrestricted MCP tool grant without a visible authentication or allowlist key."
+remediation: "Grant only required tools and configure authentication and an explicit allowlist."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.json, description: "MCP config grants every tool", code: "{ \"allowedTools\": [\"*\"] }" }
+  - { type: true_negative, fixture: safe.json, description: "MCP config uses an explicit allowlist", code: "{ \"allowedTools\": [\"read_file\"], \"requireAuth\": true }" }

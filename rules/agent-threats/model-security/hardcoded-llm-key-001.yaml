@@ -1,0 +1,21 @@
+id: hardcoded-llm-key-001
+title: "Hardcoded LLM Provider Key"
+severity: critical
+category: model-security
+scope: language-agnostic
+maps_to:
+  owasp: ["A07:2021"]
+  owasp_llm: "LLM02:2025"
+  atlas: "AML.T0046"
+detection:
+  extensions: []
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(sk-ant-|sk-proj-|sk-[A-Za-z0-9]{20,})[A-Za-z0-9_-]*'
+      flags: "i"
+description: "Detects common LLM provider key prefixes in text, including client-side reachable files."
+remediation: "Load provider keys from a server-side secret manager and keep them out of client bundles."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.js, description: "Fake LLM key in frontend source", code: "const key = 'FAKEsk-ant-abcdefghijklmnopqrstuv';" }
+  - { type: true_negative, fixture: safe.js, description: "LLM key loaded from environment", code: "const key = process.env.ANTHROPIC_API_KEY;" }

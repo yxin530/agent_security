@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+    tags: ['v*.*.*']
 
 permissions:
   contents: read
@@ -18,11 +19,32 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run build
+      - run: node dist/engine/loader.js --validate
       - run: npm run validate:rules
       - run: npm run test:rules
       - run: npm test
-      - name: Verify documented v0.2 coverage
+      - run: npm pack --dry-run
+      - name: Verify documented v0.3 coverage
         run: |
-          for rule in sql-injection-php-001 sql-injection-go-001 wildcard-cors-php-001 wildcard-cors-go-001 missing-rate-limit-php-001 missing-rate-limit-go-001 pii-in-logs-php-001 pii-in-logs-go-001 pii-in-logs-py-001; do
+          for rule in sql-injection-php-001 sql-injection-go-001 wildcard-cors-php-001 wildcard-cors-go-001 missing-rate-limit-php-001 missing-rate-limit-go-001 pii-in-logs-php-001 pii-in-logs-go-001 pii-in-logs-py-001 unvalidated-tool-args-001 unsanitized-rag-write-001 unescaped-prompt-concat-001 hardcoded-llm-key-001 permissive-mcp-grant-001 no-llm-rate-limit-001 unvalidated-agent-write-001; do
             grep -q "$rule" README.md
           done
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

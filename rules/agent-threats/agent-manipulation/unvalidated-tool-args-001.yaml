@@ -1,0 +1,22 @@
+id: unvalidated-tool-args-001
+title: "Unvalidated Agent Tool Arguments"
+severity: high
+category: agent-manipulation
+scope: language-specific
+maps_to:
+  owasp: ["A03:2021"]
+  owasp_llm: "LLM01:2025"
+  atlas: "AML.T0051"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py", "**/*.php", "**/*.go"]
+  extensions: [".js", ".ts", ".py", ".php", ".go"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(exec|execSync|spawn|system|shell|eval)\s*\(\s*(toolCall|functionCall|tool_result|toolResult)'
+      flags: "i"
+description: "Detects tool or function-call data passed directly into shell or eval-like execution without a visible validation step."
+remediation: "Validate tool arguments against an allowlist and constrain executable commands before execution."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Tool result passed directly to exec", code: "exec(toolCall.arguments.command);" }
+  - { type: true_negative, fixture: safe.ts, description: "Tool argument validated before exec", code: "const command = allowlist(toolCall.arguments.command); exec(command);" }

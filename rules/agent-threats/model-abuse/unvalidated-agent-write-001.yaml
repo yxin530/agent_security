@@ -1,0 +1,22 @@
+id: unvalidated-agent-write-001
+title: "Unvalidated Agent Result Used in Sensitive Write"
+severity: high
+category: model-abuse
+scope: language-specific
+maps_to:
+  owasp: ["A03:2021"]
+  owasp_llm: "LLM08:2025"
+  atlas: "AML.T0051"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py", "**/*.go"]
+  extensions: [".js", ".ts", ".py", ".go"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(db\.|\.write|fs\.write|writeFile|exec|shell)\s*\([^\n]*(agentResult|toolResult|toolCall\.result)'
+      flags: "i"
+description: "Detects an agent or tool result passed directly into a database, file, or shell write operation."
+remediation: "Validate and authorize agent results, and require confirmation before sensitive writes."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Agent result written directly to a file", code: "fs.writeFile('/tmp/out', agentResult);" }
+  - { type: true_negative, fixture: safe.ts, description: "Agent result validated before write", code: "const output = validate(agentResult); fs.writeFile('/tmp/out', output);" }

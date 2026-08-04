@@ -1,0 +1,1 @@
+const output = validate(agentResult); fs.writeFile('/tmp/out', output);
