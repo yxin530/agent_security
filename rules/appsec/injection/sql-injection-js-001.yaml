@@ -24,6 +24,14 @@ description: >
   string concatenation with `+` and template literal `${}` interpolation of a variable
   directly into a SQL string. Use parameterised queries or an ORM instead.
 remediation: "Use parameterised queries (e.g. db.query('SELECT * FROM users WHERE id = ?', [userId])) or an ORM. Never interpolate user input directly into SQL strings."
+ai_guidance:
+  watch_for:
+    - "SQL built through helper functions or formatters that hide user input from the line-level regex."
+  references:
+    - title: "OWASP Top 10:2021 A03 - Injection"
+      url: "https://owasp.org/Top10/A03_2021-Injection/"
+  related_rule_ids: ["sql-injection-php-001", "sql-injection-go-001"]
+  reasoning_notes: "The rule is line-oriented and does not perform taint or data-flow analysis."
 test_cases:
   - type: true_positive
     fixture: "vulnerable.ts"

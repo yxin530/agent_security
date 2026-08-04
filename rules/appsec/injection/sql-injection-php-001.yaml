@@ -18,6 +18,12 @@ detection:
       flags: "i"
 description: "Detects SQL strings concatenated with PHP variables or interpolated into double-quoted SQL strings."
 remediation: "Use parameterised queries or an ORM instead of interpolating request data into SQL."
+ai_guidance:
+  watch_for: ["Query builders or helper methods that concatenate request data across multiple lines."]
+  references:
+    - { title: "OWASP Top 10:2021 A03 - Injection", url: "https://owasp.org/Top10/A03_2021-Injection/" }
+  related_rule_ids: ["sql-injection-js-001", "sql-injection-go-001"]
+  reasoning_notes: "This regex does not model PHP data flow across function boundaries."
 test_cases:
   - type: true_positive
     fixture: "vulnerable.php"

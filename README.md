@@ -57,4 +57,6 @@ This is a security review aid, not legal advice. The v0.4 engine is regex-based 
 
 Agent-threat coverage tiers are documented in [coverage-status.md](docs/agent-threats/coverage-status.md). `documented-only` entries are framework guidance, not active scanner protection. Remediation guidance is available through the [security implementation skill](skills/security-implementation/SKILL.md).
 
+Rules may include structured AI Guidance for related manual review patterns. The remediation skill presents that guidance separately from scanner-verified findings.
+
 The v0.4 detectable additions include graph-query injection, tool-output injection, indirect and system-prompt injection, indirect tool injection, fine-tuning source verification, LLM error handling, unrestricted code execution, and unthrottled model output. Other taxonomy entries remain explicitly documented-only.

@@ -14,4 +14,6 @@ Never modify a file without the user's explicit confirmation for that specific c
 
 Keep Scanner-Verified Findings and Agent-Reasoned Advice in separate sections. For documented-only threat-types, use this exact disclosure before advice: "This guidance is not backed by an automated finding — it reflects general security judgment, not a scanner result."
 
+When a finding's rule contains `ai_guidance.watch_for`, present those items under a distinct “Related patterns to check manually” heading using the same disclosure phrase. If a related rule also produced a finding, explain the relationship without merging the findings. Do not quote `reasoning_notes` verbatim to the user.
+
 Do not fabricate findings. Report only what the engine emits. This skill contains no detection logic.

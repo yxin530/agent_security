@@ -18,6 +18,12 @@ detection:
       flags: "i"
 description: "Detects SQL strings assembled with fmt.Sprintf or concatenation of a non-literal Go value."
 remediation: "Use database/sql parameter placeholders and pass values as query arguments."
+ai_guidance:
+  watch_for: ["SQL assembled through fmt helpers or intermediate variables across multiple lines."]
+  references:
+    - { title: "OWASP Top 10:2021 A03 - Injection", url: "https://owasp.org/Top10/A03_2021-Injection/" }
+  related_rule_ids: ["sql-injection-js-001", "sql-injection-php-001"]
+  reasoning_notes: "This rule does not perform Go AST or taint analysis."
 test_cases:
   - type: true_positive
     fixture: "vulnerable.go"

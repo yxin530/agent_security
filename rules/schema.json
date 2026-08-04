@@ -13,6 +13,25 @@
     "category": { "type": "string", "minLength": 1 },
     "scope": { "type": "string", "enum": ["language-agnostic", "language-specific"] },
     "detection_tier": { "type": "string", "enum": ["regex", "context-aware", "ast"] },
+    "ai_guidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["watch_for", "references", "related_rule_ids"],
+      "properties": {
+        "watch_for": { "type": "array", "items": { "type": "string" } },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title", "url"],
+            "properties": { "title": { "type": "string" }, "url": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "related_rule_ids": { "type": "array", "items": { "type": "string" } },
+        "reasoning_notes": { "type": "string" }
+      }
+    },
     "maps_to": {
       "type": "object",
       "required": ["owasp"],

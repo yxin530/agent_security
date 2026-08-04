@@ -33,6 +33,14 @@ export interface MapsTo {
   atlas?: string;
 }
 
+export interface AIGuidanceReference { title: string; url: string; }
+export interface AIGuidance {
+  watch_for: string[];
+  references: AIGuidanceReference[];
+  related_rule_ids: string[];
+  reasoning_notes?: string;
+}
+
 export interface TestCase {
   type: 'true_positive' | 'true_negative';
   fixture: string;
@@ -47,6 +55,7 @@ export interface Rule {
   category: string;
   scope: 'language-agnostic' | 'language-specific';
   detection_tier: 'regex' | 'context-aware' | 'ast';
+  ai_guidance?: AIGuidance;
   maps_to: MapsTo;
   detection: Detection;
   description: string;
@@ -147,6 +156,13 @@ function validateThreatTaxonomy(rulesDir: string, rules: Rule[]): void {
         }
       }
     }
+  }
+}
+
+function validateRelatedRules(rules: Rule[]): void {
+  const ids = new Set(rules.map(rule => rule.id));
+  for (const rule of rules) for (const related of rule.ai_guidance?.related_rule_ids ?? []) {
+    if (!ids.has(related)) throw new LoadError(`Rule '${rule.id}' references missing related rule '${related}'`);
   }
 }
 
@@ -259,6 +275,7 @@ export function loadRules(rulesDir: string): Rule[] {
   validateAliases(rulesDir, rules);
   validateFrameworkDocs(rulesDir, rules);
   validateThreatTaxonomy(rulesDir, rules);
+  validateRelatedRules(rules);
   return rules;
 }
 
