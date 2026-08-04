@@ -5,7 +5,8 @@ This skill wraps the deterministic rules in `rules/`, including the language var
 Run from the project root:
 
 ```bash
-npx agent-security-engine scan --target <path>
+echo "@yxin530:registry=https://npm.pkg.github.com" >> .npmrc
+npx @yxin530/agent-security-engine scan --target <path>
 ```
 
 Do not fabricate findings. Report only what the engine emits. You may explain a reported finding, prioritize it, and suggest a fix, but a suspected issue not reported by the engine must be described as a proposal for a new or improved rule.

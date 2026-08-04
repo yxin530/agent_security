@@ -1,6 +1,6 @@
 {
   "name": "@yxin530/agent-security-engine",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yxin530/agent_security.git"
@@ -15,12 +15,13 @@
   "main": "dist/engine/scan.js",
   "bin": {
     "agent-security-engine": "bin/agent-security.js",
-    "agent-security-monitor": "dist/monitor/index.js"
+    "agent-security-monitor": "dist/monitor/cli.js"
   },
   "files": [
     "dist",
     "bin",
     "monitor",
+    "scripts",
     "tests/fixtures",
     "tests/adversarial",
     "README.md",
@@ -28,11 +29,12 @@
     "LICENSE"
   ],
   "scripts": {
-    "scan": "npm run build --silent && node dist/engine/scan.js",
-    "validate:rules": "npm run build --silent && node dist/engine/loader.js --validate",
-    "test:rules": "npm run build --silent && node dist/engine/test-runner.js",
+    "scan": "node dist/engine/scan.js",
+    "validate:rules": "node dist/engine/loader.js --validate",
+    "test:rules": "node dist/engine/test-runner.js",
+    "verify:package": "sh scripts/verify-package.sh",
     "test": "node --test",
-    "build": "tsc && mkdir -p dist/rules dist/docs/owasp dist/docs/frameworks && cp -R rules/. dist/rules/ && cp docs/owasp/*.md dist/docs/owasp/ && cp docs/frameworks/*.md dist/docs/frameworks/"
+    "build": "tsc && mkdir -p dist/rules dist/docs/owasp dist/docs/frameworks dist/docs/agent-threats && cp -R rules/. dist/rules/ && cp docs/owasp/*.md dist/docs/owasp/ && cp docs/frameworks/*.md dist/docs/frameworks/ && cp docs/agent-threats/*.md dist/docs/agent-threats/"
   },
   "dependencies": {
     "ajv": "8.20.0",

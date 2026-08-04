@@ -3,9 +3,11 @@ import * as path from 'path';
 import { loadRules, Rule } from './loader';
 import { scan } from './scan';
 
-const root = path.resolve(__dirname, '../..');
-const rulesDir = path.join(root, 'rules');
-const fixturesDir = path.join(root, 'tests', 'fixtures');
+const packageRoot = path.resolve(__dirname, '../..');
+const rulesDir = fs.existsSync(path.join(packageRoot, 'dist', 'rules'))
+  ? path.join(packageRoot, 'dist', 'rules')
+  : path.join(packageRoot, 'rules');
+const fixturesDir = path.join(packageRoot, 'tests', 'fixtures');
 let passed = 0;
 let failed = 0;
 

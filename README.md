@@ -12,12 +12,17 @@ The project uses a hybrid design:
 
 ```bash
 npm ci
-npx agent-security-engine scan --target <path>
+echo "@yxin530:registry=https://npm.pkg.github.com" >> .npmrc
+# Set NODE_AUTH_TOKEN to a GitHub token with read:packages before installing.
+npm install @yxin530/agent-security-engine
+npx @yxin530/agent-security-engine scan --target <path>
 npm run validate:rules
 npm run test:rules
 ```
 
-The scanner exits with code 0 when no findings are emitted and code 1 when findings are present. Use `--format json` for structured output.
+The package is published to GitHub Packages, not the public npm registry. GitHub authentication with a token having at least `read:packages` is required for private/authenticated installs. The scanner exits with code 0 when no findings are emitted and code 1 when findings are present. Use `--format json` for structured output.
+
+For a clean packed-artifact check before publishing, run `npm run verify:package`. The runtime monitor accepts NDJSON tool-call events through `agent-security-monitor --input <file>` or stdin; see [the monitor CLI guide](docs/monitor/cli.md).
 
 ## Rules
 

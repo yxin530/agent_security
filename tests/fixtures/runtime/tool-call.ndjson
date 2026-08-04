@@ -1,0 +1,3 @@
+{"type":"tool_call","name":"exec","args":{"command":"rm -rf /tmp/example"},"timestamp":"2026-08-04T00:00:00Z"}
+{"type":"unknown","data":"ignored"}
+not-json

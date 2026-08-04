@@ -1,11 +1,12 @@
 # General security audit
 
-This skill wraps the published `agent-security-engine` package and reports only findings emitted by its appsec and agent-threat rules.
+This skill wraps the published `@yxin530/agent-security-engine` package and reports only findings emitted by its appsec and agent-threat rules.
 
 Run:
 
 ```bash
-npx agent-security-engine scan --target <path>
+echo "@yxin530:registry=https://npm.pkg.github.com" >> .npmrc
+npx @yxin530/agent-security-engine scan --target <path>
 ```
 
 If the package is not installed, `npx` may fetch it once at install time; the scan itself runs offline. Do not fabricate findings. Report only what the engine emits.

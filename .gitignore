@@ -7,6 +7,7 @@ requirements.md
 # Dependencies and generated build output
 node_modules/
 dist/
+*.tgz
 
 # Logs and local environment files
 *.log

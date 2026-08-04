@@ -5,7 +5,8 @@ This skill consumes the same engine CLI output as `skills/security-audit/SKILL.m
 Run:
 
 ```bash
-npx agent-security-engine scan --target <path>
+echo "@yxin530:registry=https://npm.pkg.github.com" >> .npmrc
+npx @yxin530/agent-security-engine scan --target <path>
 ```
 
 For each Scanner-Verified Finding, show the vulnerable snippet, propose a specific corrected code change, explain it in plain language, and ask for the user's confirmation before applying that specific change.

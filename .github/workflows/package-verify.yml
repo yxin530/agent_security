@@ -1,0 +1,47 @@
+name: Verify GitHub Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published package version
+        required: true
+        default: '0.6.2'
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: '@yxin530'
+      - name: Configure GitHub Packages authentication
+        run: echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> .npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install published package in clean directory
+        run: |
+          VERIFY_DIR=$(mktemp -d)
+          echo "VERIFY_DIR=$VERIFY_DIR" >> "$GITHUB_ENV"
+          cd "$VERIFY_DIR"
+          npm init -y
+          VERSION="${{ inputs.version }}"
+          if [ -z "$VERSION" ]; then VERSION="0.6.2"; fi
+          npm install "@yxin530/agent-security-engine@$VERSION"
+      - name: Verify installed package
+        run: |
+          PKG="$VERIFY_DIR/node_modules/@yxin530/agent-security-engine"
+          node "$PKG/dist/engine/loader.js" --validate
+          node "$PKG/dist/engine/test-runner.js"
+          node "$PKG/bin/agent-security.js" --help
