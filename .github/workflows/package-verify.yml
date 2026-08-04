@@ -6,7 +6,7 @@ on:
       version:
         description: Published package version
         required: true
-        default: '0.6.2'
+        default: '0.6.3'
   workflow_run:
     workflows: [CI]
     types: [completed]
@@ -37,7 +37,9 @@ jobs:
           cd "$VERIFY_DIR"
           npm init -y
           VERSION="${{ inputs.version }}"
-          if [ -z "$VERSION" ]; then VERSION="0.6.2"; fi
+          if [ -z "$VERSION" ]; then VERSION="${{ github.event.workflow_run.head_branch }}"; fi
+          VERSION="${VERSION#v}"
+          if [ -z "$VERSION" ]; then VERSION="0.6.3"; fi
           npm install "@yxin530/agent-security-engine@$VERSION"
       - name: Verify installed package
         run: |
