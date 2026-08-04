@@ -1,0 +1,27 @@
+id: missing-llm-error-handling-001
+title: "LLM Call Without Error Handling"
+severity: medium
+category: model-security
+scope: language-specific
+maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM09:2025", atlas: "AML.T0043" }
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(client\.(messages|chat|completions)|openai\.|anthropic\.)[^\n]*\.(create|complete)\s*\('
+      flags: "i"
+    - pattern: 'catch\s*\('
+      negate: true
+description: "Detects a direct LLM API call with no visible catch or error-handling wrapper on the line."
+remediation: "Handle provider failures explicitly and define a safe fallback behavior."
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: "Direct LLM call has no visible error handler"
+    code: "const result = client.chat.completions.create(request);"
+  - type: true_negative
+    fixture: safe.ts
+    description: "LLM call is inside a try/catch"
+    code: "try { const result = await client.chat.completions.create(request); } catch (error) { return fallback(); }"

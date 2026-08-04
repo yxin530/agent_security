@@ -1,0 +1,22 @@
+id: tool-output-injection-001
+title: "Tool Output Used as Trusted Instruction"
+severity: high
+category: data-poisoning
+scope: language-specific
+maps_to: { owasp: ["A03:2021"], owasp_llm: "LLM01:2025", atlas: "AML.T0051" }
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(messages|prompt|system|developer)[^\n]*(toolResult|functionResult|tool_output)'
+      flags: "i"
+    - pattern: '(TOOL_RESULT|tool-data|provenance|untrusted)'
+      flags: "i"
+      negate: true
+description: "Detects tool output inserted into a subsequent model instruction without a visible data boundary."
+remediation: "Label tool output as untrusted tool-originated data and place it in a distinct message boundary."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Tool result inserted into prompt", code: "client.chat({ messages: [{ role: 'system', content: toolResult }] });" }
+  - { type: true_negative, fixture: safe.ts, description: "Tool result explicitly delimited", code: "client.chat({ messages: [{ role: 'user', content: '<tool-data>' + escape(toolResult) }] });" }

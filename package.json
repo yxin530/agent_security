@@ -1,6 +1,6 @@
 {
   "name": "agent-security-engine",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "dist/engine/scan.js",
   "bin": { "agent-security-engine": "bin/agent-security.js" },
   "files": ["dist", "bin", "README.md", "LICENSE"],

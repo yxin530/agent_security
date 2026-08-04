@@ -1,0 +1,22 @@
+id: unthrottled-model-output-001
+title: "Unthrottled Raw Model Output Endpoint"
+severity: medium
+category: model-abuse
+scope: language-specific
+maps_to: { owasp: ["A04:2021"], owasp_llm: "LLM10:2025", atlas: "AML.T0043" }
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(app|router)\.(get|post)\s*\([^\n]*(completion|generate|chat)[^\n]*(res\.(json|send)|return)'
+      flags: "i"
+    - pattern: '(rateLimit|throttle|quota|limit|tokenBudget)'
+      flags: "i"
+      negate: true
+description: "Detects an exposed endpoint returning model output without a visible per-user volume or token limit."
+remediation: "Apply per-user query limits and cap output tokens before returning model responses."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Completion endpoint has no throttle", code: "app.post('/completion', (req, res) => res.json(client.complete(req.body)));" }
+  - { type: true_negative, fixture: safe.ts, description: "Completion endpoint uses a quota", code: "app.post('/completion', quota(), (req, res) => res.json(client.complete(req.body)));" }

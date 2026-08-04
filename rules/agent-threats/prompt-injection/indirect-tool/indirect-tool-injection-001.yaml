@@ -1,0 +1,19 @@
+id: indirect-tool-injection-001
+title: "Unlabelled Tool Result in Model Context"
+severity: high
+category: prompt-injection
+scope: language-specific
+maps_to: { owasp: ["A03:2021"], owasp_llm: "LLM01:2025", atlas: "AML.T0051" }
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(toolResult|tool_output)[^\n]*(messages|context|prompt)'
+      flags: "i"
+description: "Detects tool-result content flowing into model context without a visible tool-origin label."
+remediation: "Mark tool results as tool-originated data and delimit them before including them in model context."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Tool result appended to context", code: "context += toolResult; client.messages.create({ context });" }
+  - { type: true_negative, fixture: safe.ts, description: "Tool result labeled in context", code: "context += '[TOOL_RESULT]' + escape(toolResult);" }

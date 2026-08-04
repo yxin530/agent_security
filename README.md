@@ -53,4 +53,8 @@ Agent-threat rules use OWASP LLM and MITRE ATLAS mappings:
 
 Skills: [general security audit](skills/security-audit/SKILL.md) for OWASP/ATLAS framing, or [PDPA security audit](skills/pdpa-security-audit/SKILL.md) for Malaysian compliance framing. Read the [PDPA mapping notes](docs/legal/pdpa-2024-mapping.md), [OWASP web docs](docs/owasp/web-top-10.md), [OWASP LLM docs](docs/owasp/llm-top-10.md), and [MITRE ATLAS docs](docs/frameworks/mitre-atlas.md) before relying on mappings or agent-generated explanations.
 
-This is a security review aid, not legal advice. The v0.2 engine is regex-based and only claims the language/framework coverage shown above.
+This is a security review aid, not legal advice. The v0.4 engine is regex-based and only claims the language/framework and threat-type coverage shown above.
+
+Agent-threat coverage tiers are documented in [coverage-status.md](docs/agent-threats/coverage-status.md). `documented-only` entries are framework guidance, not active scanner protection. Remediation guidance is available through the [security implementation skill](skills/security-implementation/SKILL.md).
+
+The v0.4 detectable additions include graph-query injection, tool-output injection, indirect and system-prompt injection, indirect tool injection, fine-tuning source verification, LLM error handling, unrestricted code execution, and unthrottled model output. Other taxonomy entries remain explicitly documented-only.

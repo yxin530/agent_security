@@ -1,0 +1,1 @@
+client.chat({ messages: [{ role: 'user', content: '<tool-data>' + escape(toolResult) }] });

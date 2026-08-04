@@ -9,3 +9,9 @@ These entries are plain-language references for agent-threat mappings, not imper
 - `AML.T0051` LLM Prompt Injection: crafted content alters the model's instructions or action selection.
 
 Source: [MITRE ATLAS techniques](https://atlas.mitre.org/techniques/).
+
+## v0.4 taxonomy references
+
+All entries below are framework documentation; the coverage tier is tracked in `docs/agent-threats/coverage-status.md`.
+
+The v0.4 detectable types are mapped through their individual rule files: cross-agent, tool-injection, graph-query-injection, dataset-issues, direct/indirect/system-prompt/indirect-tool prompt injection, model-behavior, malicious-fine-tuning, model-catch-issue, malicious-use, malware-issues, and extraction-issues. The remaining taxonomy types are `documented-only` because reliable static detection is not currently established.

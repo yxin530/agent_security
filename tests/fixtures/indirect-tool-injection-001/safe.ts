@@ -1,0 +1,1 @@
+context += '[TOOL_RESULT]' + escape(toolResult);

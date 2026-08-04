@@ -132,6 +132,23 @@ function validateFrameworkDocs(rulesDir: string, rules: Rule[]): void {
   if (failures.length) throw new LoadError(`Framework documentation validation failed:\n${failures.join('\n')}`);
 }
 
+function validateThreatTaxonomy(rulesDir: string, rules: Rule[]): void {
+  const statusPath = path.join(path.dirname(rulesDir), 'docs', 'agent-threats', 'coverage-status.md');
+  if (!fs.existsSync(statusPath)) throw new LoadError(`Missing threat coverage status: ${statusPath}`);
+  const status = fs.readFileSync(statusPath, 'utf8');
+  for (const rule of rules) {
+    const marker = `${path.basename(path.dirname(path.dirname(path.join(rulesDir, rule.id))))}`;
+    if (!rule.id || !status.includes(rule.id)) {
+      if (rule.category && rulesDir.includes('rules')) {
+        const files = walkYamlFiles(rulesDir).filter(file => file.endsWith(`${rule.id}.yaml`));
+        if (files.some(file => file.includes(`${path.sep}agent-threats${path.sep}`)) && !status.includes(rule.id)) {
+          throw new LoadError(`Threat rule '${rule.id}' is missing from coverage-status.md`);
+        }
+      }
+    }
+  }
+}
+
 function processFile(
   filePath: string,
   violations: Violation[],
@@ -240,6 +257,7 @@ export function loadRules(rulesDir: string): Rule[] {
 
   validateAliases(rulesDir, rules);
   validateFrameworkDocs(rulesDir, rules);
+  validateThreatTaxonomy(rulesDir, rules);
   return rules;
 }
 

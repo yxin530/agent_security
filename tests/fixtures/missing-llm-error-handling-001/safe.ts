@@ -1,0 +1,1 @@
+try { const result = await client.chat.completions.create(request); } catch (error) { return fallback(); }

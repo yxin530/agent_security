@@ -1,0 +1,19 @@
+id: unverified-fine-tune-source-001
+title: "Unverified Fine-Tuning Data Source"
+severity: high
+category: model-security
+scope: language-specific
+maps_to: { owasp: ["A08:2021"], owasp_llm: "LLM03:2025", atlas: "AML.T0020" }
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '(fineTune|train|trainingData|dataset)\s*[^\n]*(req\.body|uploads|userData|/tmp/)'
+      flags: "i"
+description: "Detects fine-tuning or training data loaded from a user-writable source without visible provenance verification."
+remediation: "Verify provenance and integrity with an authenticated source and checksum before training."
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Training data loaded from upload", code: "fineTune(req.body.uploads);" }
+  - { type: true_negative, fixture: safe.ts, description: "Training data verified before use", code: "fineTune(verifyChecksum(signedDataset));" }

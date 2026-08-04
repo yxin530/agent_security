@@ -1,0 +1,1 @@
+const prompt = 'Summarize <document>' + sanitize(response.data) + '</document>';
