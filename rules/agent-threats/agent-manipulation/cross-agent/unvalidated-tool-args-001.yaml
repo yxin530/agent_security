@@ -2,6 +2,7 @@ id: unvalidated-tool-args-001
 title: "Unvalidated Agent Tool Arguments"
 severity: high
 category: agent-manipulation
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp: ["A03:2021"]

@@ -2,6 +2,7 @@ id: wildcard-cors-go-001
 title: "Wildcard CORS with Credentials in Go"
 severity: high
 category: cors
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A05:2021"] }
 detection:

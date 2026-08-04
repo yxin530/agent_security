@@ -2,6 +2,7 @@ id: pii-in-logs-js-001
 title: PII Logged in Plaintext
 severity: high
 category: logging
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp:

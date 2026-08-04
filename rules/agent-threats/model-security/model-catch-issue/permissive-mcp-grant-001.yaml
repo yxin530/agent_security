@@ -2,6 +2,7 @@ id: permissive-mcp-grant-001
 title: "Permissive MCP Tool Grant"
 severity: high
 category: model-security
+detection_tier: regex
 scope: language-agnostic
 maps_to:
   owasp: ["A05:2021"]

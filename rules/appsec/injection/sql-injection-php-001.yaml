@@ -2,6 +2,7 @@ id: sql-injection-php-001
 title: "SQL Injection via PHP String Concatenation"
 severity: high
 category: injection
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp: ["A03:2021"]

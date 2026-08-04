@@ -2,6 +2,7 @@ id: sql-injection-js-001
 title: "SQL Injection via String Concatenation"
 severity: high
 category: injection
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp:

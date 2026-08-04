@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "required": ["id", "title", "severity", "category", "scope", "maps_to", "detection", "description", "remediation", "test_cases"],
+  "required": ["id", "title", "severity", "category", "scope", "detection_tier", "maps_to", "detection", "description", "remediation", "test_cases"],
   "additionalProperties": false,
   "properties": {
     "id": { "type": "string", "minLength": 1 },
@@ -12,6 +12,7 @@
     },
     "category": { "type": "string", "minLength": 1 },
     "scope": { "type": "string", "enum": ["language-agnostic", "language-specific"] },
+    "detection_tier": { "type": "string", "enum": ["regex", "context-aware", "ast"] },
     "maps_to": {
       "type": "object",
       "required": ["owasp"],

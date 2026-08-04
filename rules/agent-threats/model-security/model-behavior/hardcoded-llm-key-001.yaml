@@ -2,6 +2,7 @@ id: hardcoded-llm-key-001
 title: "Hardcoded LLM Provider Key"
 severity: critical
 category: model-security
+detection_tier: regex
 scope: language-agnostic
 maps_to:
   owasp: ["A07:2021"]

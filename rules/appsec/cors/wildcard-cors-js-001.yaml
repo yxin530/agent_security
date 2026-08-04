@@ -2,6 +2,7 @@ id: wildcard-cors-js-001
 title: "Wildcard CORS with Credentials Enabled"
 severity: high
 category: cors
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp:

@@ -2,6 +2,7 @@ id: unverified-fine-tune-source-001
 title: "Unverified Fine-Tuning Data Source"
 severity: high
 category: model-security
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A08:2021"], owasp_llm: "LLM03:2025", atlas: "AML.T0020" }
 detection:

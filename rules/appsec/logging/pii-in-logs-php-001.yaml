@@ -2,6 +2,7 @@ id: pii-in-logs-php-001
 title: "PII in PHP Logs"
 severity: high
 category: logging
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A09:2021"] }
 detection:

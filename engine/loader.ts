@@ -46,6 +46,7 @@ export interface Rule {
   severity: 'critical' | 'high' | 'medium' | 'low' | 'informational';
   category: string;
   scope: 'language-agnostic' | 'language-specific';
+  detection_tier: 'regex' | 'context-aware' | 'ast';
   maps_to: MapsTo;
   detection: Detection;
   description: string;

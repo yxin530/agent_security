@@ -2,6 +2,7 @@ id: missing-rate-limit-js-001
 title: "Missing Rate Limiting on Authentication Endpoint"
 severity: medium
 category: access-control
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp:

@@ -2,6 +2,7 @@ id: tool-output-injection-001
 title: "Tool Output Used as Trusted Instruction"
 severity: high
 category: data-poisoning
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A03:2021"], owasp_llm: "LLM01:2025", atlas: "AML.T0051" }
 detection:

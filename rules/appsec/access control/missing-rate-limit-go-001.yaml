@@ -2,6 +2,7 @@ id: missing-rate-limit-go-001
 title: "Missing Rate Limiting on Go Authentication Handler"
 severity: medium
 category: access-control
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A04:2021"] }
 detection:

@@ -2,6 +2,7 @@ id: graph-query-injection-001
 title: "Graph Query Injection"
 severity: high
 category: data-poisoning
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A03:2021"], owasp_llm: "LLM03:2025", atlas: "AML.T0020" }
 detection:

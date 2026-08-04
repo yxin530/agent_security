@@ -2,6 +2,7 @@ id: unthrottled-model-output-001
 title: "Unthrottled Raw Model Output Endpoint"
 severity: medium
 category: model-abuse
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A04:2021"], owasp_llm: "LLM10:2025", atlas: "AML.T0043" }
 detection:

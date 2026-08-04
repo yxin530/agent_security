@@ -1,9 +1,9 @@
 {
   "name": "agent-security-engine",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "main": "dist/engine/scan.js",
-  "bin": { "agent-security-engine": "bin/agent-security.js" },
-  "files": ["dist", "bin", "README.md", "LICENSE"],
+  "bin": { "agent-security-engine": "bin/agent-security.js", "agent-security-monitor": "dist/monitor/index.js" },
+  "files": ["dist", "bin", "monitor", "tests/fixtures", "tests/adversarial", "README.md", "CHANGELOG.md", "LICENSE"],
   "scripts": {
     "scan": "npm run build --silent && node dist/engine/scan.js",
     "validate:rules": "npm run build --silent && node dist/engine/loader.js --validate",

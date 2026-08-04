@@ -2,6 +2,7 @@ id: indirect-prompt-injection-001
 title: "Indirect Prompt Injection from Fetched Content"
 severity: high
 category: prompt-injection
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A03:2021"], owasp_llm: "LLM01:2025", atlas: "AML.T0051" }
 detection:

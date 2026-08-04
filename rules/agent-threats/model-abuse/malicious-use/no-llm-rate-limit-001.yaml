@@ -2,6 +2,7 @@ id: no-llm-rate-limit-001
 title: "LLM Endpoint Without Rate Limit"
 severity: medium
 category: model-abuse
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp: ["A04:2021"]

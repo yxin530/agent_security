@@ -2,6 +2,7 @@ id: missing-breach-log-js-001
 title: "Data Export/Deletion Route Missing Audit Log"
 severity: medium
 category: data-lifecycle
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp:

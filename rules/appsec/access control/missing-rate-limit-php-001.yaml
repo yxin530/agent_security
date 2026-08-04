@@ -2,6 +2,7 @@ id: missing-rate-limit-php-001
 title: "Missing Rate Limiting on Laravel Authentication Route"
 severity: medium
 category: access-control
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A04:2021"] }
 detection:

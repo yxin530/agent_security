@@ -2,6 +2,7 @@ id: unsanitized-rag-write-001
 title: "Unsanitized User Content Written to RAG Store"
 severity: high
 category: data-poisoning
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp: ["A05:2021"]

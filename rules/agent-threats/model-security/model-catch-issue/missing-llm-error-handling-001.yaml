@@ -2,6 +2,7 @@ id: missing-llm-error-handling-001
 title: "LLM Call Without Error Handling"
 severity: medium
 category: model-security
+detection_tier: regex
 scope: language-specific
 maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM09:2025", atlas: "AML.T0043" }
 detection:

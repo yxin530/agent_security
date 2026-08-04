@@ -14,6 +14,6 @@ export function formatJson(findings: Finding[], scannedFiles: number): string {
 
 export function formatTerminal(findings: Finding[]): string {
   return [...findings].sort((a, b) => order.indexOf(a.severity) - order.indexOf(b.severity))
-    .map(f => `[${f.severity.toUpperCase()}] ${f.title} / File: ${f.file}:${f.line} / Fix: ${f.remediation}`)
+    .map(f => `[${f.severity.toUpperCase()}] ${f.title} / File: ${f.file}:${f.line} / Tier: ${f.detectionTier} / Fix: ${f.remediation}`)
     .join('\n');
 }

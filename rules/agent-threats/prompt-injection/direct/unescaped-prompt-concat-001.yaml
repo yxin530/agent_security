@@ -2,6 +2,7 @@ id: unescaped-prompt-concat-001
 title: "Unescaped User Input in LLM Prompt"
 severity: high
 category: prompt-injection
+detection_tier: regex
 scope: language-specific
 maps_to:
   owasp: ["A03:2021"]

@@ -14,7 +14,11 @@ export interface Finding {
   message: string;
   remediation: string;
   mapsTo: Rule['maps_to'];
+  detectionTier: Rule['detection_tier'];
+  source: 'static' | 'runtime';
 }
+
+export let lastScannedFiles = 0;
 
 function walkFiles(dir: string): string[] {
   const files: string[] = [];
@@ -99,12 +103,14 @@ export function scan(rulesDir: string, targetDir: string): Finding[] {
   if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) throw new Error(`Target must be an existing directory: ${targetDir}`);
   const rules = loadRules(rulesDir);
   const findings: Finding[] = [];
+  lastScannedFiles = 0;
   for (const file of walkFiles(targetDir)) {
     const raw = fs.readFileSync(file);
     if (!isText(raw)) continue;
     const extension = path.extname(file);
     const relative = path.relative(targetDir, file);
     const content = raw.toString('utf8');
+    if (rules.some(rule => rule.scope === 'language-agnostic' || (rule.detection.file_patterns ?? []).some(pattern => matchesPattern(relative, pattern)))) lastScannedFiles++;
     const lines = content.split(/\r?\n/);
     for (const rule of rules) {
       if (rule.scope === 'language-specific') {
@@ -115,7 +121,8 @@ export function scan(rulesDir: string, targetDir: string): Finding[] {
       if (!match) continue;
       findings.push({ ruleId: rule.id, title: rule.title, severity: rule.severity, category: rule.category,
         file: path.relative(targetDir, file), line: match.line, column: match.column,
-        message: rule.description.split('\n')[0], remediation: rule.remediation, mapsTo: rule.maps_to });
+        message: rule.description.split('\n')[0], remediation: rule.remediation, mapsTo: rule.maps_to,
+        detectionTier: rule.detection_tier, source: 'static' });
     }
   }
   return findings;
@@ -132,7 +139,7 @@ if (require.main === module) {
   try {
     const findings = scan(arg('--rules', path.join(root, 'rules')), target);
   const format = arg('--format', 'text');
-    if (format === 'json') console.log(formatJson(findings, 0));
+    if (format === 'json') console.log(formatJson(findings, lastScannedFiles));
     else console.log(findings.length === 0 ? 'No findings.' : formatTerminal(findings));
     process.exitCode = findings.length > 0 ? 1 : 0;
   } catch (error) {

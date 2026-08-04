@@ -2,6 +2,7 @@ id: pii-pattern-001
 title: "Personal Data Pattern in Text"
 severity: high
 category: logging
+detection_tier: regex
 scope: language-agnostic
 maps_to: { owasp: ["A09:2021"] }
 detection:
