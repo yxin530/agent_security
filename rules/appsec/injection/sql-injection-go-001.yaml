@@ -12,10 +12,10 @@ detection:
   scope: line
   logic: OR
   conditions:
-    - pattern: 'fmt\.Sprintf\s*\(\s*"(SELECT|INSERT|UPDATE|DELETE)\s+[^"\n]*%[svd]'
+    - pattern: '(?:WHERE|AND|OR|SET|VALUES|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\b.*?["'']\s*\+\s*[a-zA-Z_]\w*'
       flags: "i"
-    - pattern: '"(SELECT|INSERT|UPDATE|DELETE)\s+[^"\n]*"\s*\+\s*[a-zA-Z_]\w*'
-      flags: "i"
+    - pattern: 'fmt\.Sprintf\s*\(\s*"(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|.*?WHERE|.*?AND|.*?OR).*?%[svd]'
+      flags: "is"
 description: "Detects SQL strings assembled with fmt.Sprintf or concatenation of a non-literal Go value."
 remediation: "Use database/sql parameter placeholders and pass values as query arguments."
 ai_guidance:

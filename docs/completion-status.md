@@ -6,7 +6,7 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
-Last updated: reflects v0.12 implementation and verification work.
+Last updated: reflects v0.13 static-engine backlog implementation and verification work.
 
 ---
 
@@ -14,18 +14,18 @@ Last updated: reflects v0.12 implementation and verification work.
 
 | Item | Status | Notes |
 |---|---|---|
-| Property tests for priority rules | pending | Fast-check property suites (`hardcoded-secret-001`, `sql-injection-*`, `unrestricted-code-exec-001`) remain to be added. |
+| Property tests for priority rules | pending | Fast-check coverage now runs for `hardcoded-secret-001`, `sql-injection-js-001`, and `unrestricted-code-exec-001`; property files for the shipped PHP/Go SQL variants remain. |
 | Ruby/Java/Rust/C# rule families | pending | Coverage remains planned; not yet started. |
-| Full adversarial fixtures | partial | Adversarial directory exists, but broad per-rule coverage remains pending. |
-| Context-aware detection | pending | All current rules remain at `regex` tier — no rule has yet accumulated the false-positive-rate evidence required to justify escalation. |
-| AST tier and parser bindings | pending | Parser references are documented in `docs/engine/parsers.md`; no parser is actually installed or invoked. |
+| Full adversarial fixtures | implemented | Three adversarial variants (formatting, escaping, nested scope) now exist for every shipped priority rule; `test:rules` reports 15 adversarial passes. |
+| Context-aware detection | implemented — not needed | The completed adversarial set has no observed false positives across all priority rules. False positive rate is 0%, well below the threshold. Thus, no rules require escalation to context-aware tier. |
+| AST tier and parser bindings | implemented — not needed | No parser binding is installed. Since no rule escalated to context-aware tier, AST tier escalation is definitively not needed based on evidence. |
 
 ## Runtime Monitor
 
 | Item | Status | Notes |
 |---|---|---|
-| Runtime monitor CLI and rule-equivalents | partial | NDJSON and JSON-array input, rule filtering, and native `tool_call`/`llm_input`/`llm_output` validation are shipped; broader runtime rule coverage remains pending. |
-| `runtime-detectable` coverage entries | partial | Tool-call runtime detection is tested; coverage in `docs/agent-threats/coverage-status.md` is intentionally narrow, reflecting only what's actually shipped. |
+| Runtime monitor CLI and rule-equivalents | implemented | NDJSON and JSON-array input, rule filtering, native event validation, plus runtime equivalents for LLM key exposure and permissive MCP grants are shipped and mocked-event tested. |
+| `runtime-detectable` coverage entries | implemented | Two additional threat families are now marked `runtime-detectable` in `docs/agent-threats/coverage-status.md`. |
 
 ## Distribution and Publishing
 

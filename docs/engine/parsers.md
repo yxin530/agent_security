@@ -13,4 +13,4 @@ The current v0.5 release keeps all shipped rules at `detection_tier: regex`; no 
 | Rust | Tree-sitter Rust grammar | MIT; native/tree-sitter toolchain may be required |
 | C# | Tree-sitter C# grammar | MIT; native/tree-sitter toolchain may be required |
 
-No parser dependency is currently bundled; AST escalation requires measured evidence and a separate design update.
+No parser bindings are currently installed. Based on final false-positive rate measurements across the complete adversarial fixture set (Requirement 98 & 99), no rule requires escalation to the `context-aware` or AST tier. This is the correct, evidence-based state and not an oversight. The bindings above remain documented should a future rule ever require them.

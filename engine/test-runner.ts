@@ -21,6 +21,23 @@ function runCase(rule: Rule, type: 'true_positive' | 'true_negative', fixture: s
   else { failed++; console.error(`FAIL ${rule.id} ${type} ${fixture}: expected ${expected ? 'finding' : 'no finding'}`); }
 }
 
+function runAdversarial(): void {
+  const root = path.join(packageRoot, 'tests', 'adversarial');
+  if (!fs.existsSync(root)) return;
+  let passedAdversarial = 0; let failedAdversarial = 0;
+  for (const rule of loadRules(rulesDir)) {
+    const dir = path.join(root, rule.id);
+    if (!fs.existsSync(dir)) continue;
+    for (const fixture of fs.readdirSync(dir)) {
+      const findings = scan(rulesDir, dir).filter(f => f.ruleId === rule.id && f.file === fixture);
+      if (findings.length === 0) { failedAdversarial++; console.error(`FAIL adversarial ${rule.id} ${fixture}`); }
+      else { passedAdversarial++; console.log(`PASS adversarial ${rule.id} ${fixture}`); }
+    }
+  }
+  console.log(`Adversarial tests: ${passedAdversarial} passed, ${failedAdversarial} failed`);
+  if (failedAdversarial) failed += failedAdversarial;
+}
+
 function checkFixtureIntegrity(rule: Rule, fixture: string): void {
   if (rule.id !== 'hardcoded-secret-001') return;
   const content = fs.readFileSync(path.join(fixturesDir, rule.id, fixture), 'utf8');
@@ -32,6 +49,7 @@ try {
   for (const rule of loadRules(rulesDir)) {
     for (const testCase of rule.test_cases) { checkFixtureIntegrity(rule, testCase.fixture); runCase(rule, testCase.type, testCase.fixture); }
   }
+  runAdversarial();
 } catch (error) {
   console.error((error as Error).message);
   process.exit(1);

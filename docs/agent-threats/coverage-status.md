@@ -18,9 +18,9 @@ Coverage tiers describe what is shipped: `detectable` has a tested static rule; 
 | prompt-injection/jailbreak | documented-only | — |
 | prompt-injection/system-prompt | detectable | [system-prompt-injection-001](../../rules/agent-threats/prompt-injection/system-prompt/system-prompt-injection-001.yaml) |
 | prompt-injection/indirect-tool | detectable | [indirect-tool-injection-001](../../rules/agent-threats/prompt-injection/indirect-tool/indirect-tool-injection-001.yaml) |
-| model-security/model-behavior | detectable | [hardcoded-llm-key-001](../../rules/agent-threats/model-security/model-behavior/hardcoded-llm-key-001.yaml) |
+| model-security/model-behavior | runtime-detectable | [hardcoded-llm-key-001](../../rules/agent-threats/model-security/model-behavior/hardcoded-llm-key-001.yaml), `agent-security-monitor` |
 | model-security/malicious-fine-tuning | detectable | [unverified-fine-tune-source-001](../../rules/agent-threats/model-security/malicious-fine-tuning/unverified-fine-tune-source-001.yaml) |
-| model-security/model-catch-issue | detectable | [missing-llm-error-handling-001](../../rules/agent-threats/model-security/model-catch-issue/missing-llm-error-handling-001.yaml), `permissive-mcp-grant-001` |
+| model-security/model-catch-issue | runtime-detectable | [missing-llm-error-handling-001](../../rules/agent-threats/model-security/model-catch-issue/missing-llm-error-handling-001.yaml), [permissive-mcp-grant-001](../../rules/agent-threats/model-security/model-catch-issue/permissive-mcp-grant-001.yaml), `agent-security-monitor` |
 | model-security/mcp-security | detectable | `unrestricted-filesystem-access-001`, `unrestricted-shell-exec-001`, `missing-tool-arg-validation-001`, `missing-tool-auth-001`, `missing-destructive-action-confirmation-001`, `excessive-tool-permissions-001`, `unbounded-tool-output-001`, `tool-ssrf-001`, `sensitive-data-in-resources-001`, `unsafe-server-instructions-001`, `missing-audit-logging-001`, `missing-tool-rate-limiting-001`, `tool-description-prompt-injection-001` |
 | model-abuse/self-harm | documented-only | — |
 | model-abuse/malicious-use | detectable | [no-llm-rate-limit-001](../../rules/agent-threats/model-abuse/malicious-use/no-llm-rate-limit-001.yaml) |

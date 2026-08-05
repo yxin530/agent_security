@@ -22,6 +22,13 @@ Supported event examples:
 ```
 
 Use `--rules rule-id-1,rule-id-2` to restrict evaluation. Input may also be a JSON array; output remains newline-delimited findings.
+
+Runtime equivalents also inspect observed events for outbound LLM key prefixes and permissive MCP grants:
+
+```json
+{"type":"llm_output","content":"request Authorization sk-ant-abcdefghijklmnopqrstuv","timestamp":"2026-08-05T00:00:00Z"}
+{"type":"tool_call","name":"grant","args":{"tools":["*"]},"timestamp":"2026-08-05T00:00:00Z"}
+```
 ```
 
 Use `--input -` or omit `--input` to read stdin. Invalid or unknown events are warned to stderr and skipped. Exit code 1 means at least one runtime finding was emitted.
