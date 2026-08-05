@@ -26,3 +26,32 @@ test('scan paths outside configured roots are rejected', () => {
   assert.throws(() => validateScanTarget(os.tmpdir(), { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), /outside allowed scan roots/);
   assert.throws(() => validateScanTarget(path.join(root, '.ssh'), { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), /ENOENT|denied/);
 });
+
+test('symlinks within allowed roots are permitted', () => {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'agent-security-sym-')));
+  const target = path.join(root, 'target.txt');
+  fs.writeFileSync(target, 'data');
+  const link = path.join(root, 'link.txt');
+  fs.symlinkSync(target, link);
+  assert.equal(validateScanTarget(link, { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), fs.realpathSync(target));
+});
+
+test('symlinks escaping allowed roots are rejected', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-security-sym-in-'));
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-security-sym-out-'));
+  const target = path.join(outside, 'target.txt');
+  fs.writeFileSync(target, 'data');
+  const link = path.join(root, 'link.txt');
+  fs.symlinkSync(target, link);
+  assert.throws(() => validateScanTarget(link, { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), /outside allowed scan roots/);
+});
+
+test('denylist categories are individually rejected', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-security-deny-'));
+  const categories = ['.ssh', '.aws', '.azure', '.gnupg', '.npmrc', '.docker', '.git'];
+  for (const cat of categories) {
+    const dir = path.join(root, cat);
+    fs.mkdirSync(dir);
+    assert.throws(() => validateScanTarget(dir, { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), /denied by security policy/);
+  }
+});

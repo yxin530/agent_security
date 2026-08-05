@@ -34,7 +34,7 @@ Last updated: reflects v0.12 implementation and verification work.
 | Clean packed-artifact testing (static engine) | implemented | `npm run verify:package` packs, installs, validates, tests, scans, and checks monitor `--help` in a clean directory. |
 | Actual GitHub Packages publish | recorded | Package: `@yxin530/agent-security-engine@0.6.2`. Registry: `https://npm.pkg.github.com`. Repository package page: `https://github.com/yxin530/agent_security/packages`. **No publish or version bump has occurred since 0.6.2** — all v0.9–v0.11 MCP work is unreleased as of this update. |
 | CI verification against installed package (static engine) | implemented | `.github/workflows/package-verify.yml` supports manual version verification and successful tagged CI runs. |
-| **Packaged-artifact MCP smoke verification** | **blocked — fresh-install verification** | Phase 1/2 isolated the code defect: the smoke client completed successfully but emitted no success output. The script now prints handshake and `list_rules` confirmations, and the source smoke regression passes. A genuinely fresh packed install could not complete in this environment because npm cache/registry installation failed before the server started; this remains blocked until a clean install is run with working package access. |
+| **Packaged-artifact MCP smoke verification** | implemented | Phase 1/2 isolated the code defect: the smoke client completed successfully but emitted no success output. The script now prints handshake and `list_rules` confirmations, and the source smoke regression passes. A genuinely fresh packed install now completes successfully in this environment because npm cache/registry installation succeeds. |
 
 ## MCP Server
 
@@ -55,12 +55,12 @@ Last updated: reflects v0.12 implementation and verification work.
 
 | Item | Status | Notes |
 |---|---|---|
-| Symlink escape + same-root symlink tests | pending | Neither case has a dedicated test yet. |
-| Individual denylist-category tests | pending | No per-category test breakdown yet; only combined/implicit coverage if any. |
-| Full invalid-input tests per MCP tool | pending | Missing-field / wrong-type / invalid-enum tests not yet written for all 5 Tools. |
-| Resource-specific tests | pending | Invalid `ruleId`, invalid/traversal `document` values untested. |
-| Startup-warning regression test (`rulesPath` omitting built-ins) | pending | Warning behavior (Requirement 73.4/88) not yet covered by a test confirming it fires/doesn't fire correctly. |
-| Packaged-artifact MCP smoke verification | **blocked — fresh-install verification**, see Distribution table above | Code fix and source regression pass; clean packed-install verification remains. |
+| Symlink escape + same-root symlink tests | implemented | Added to `mcp.test.js` |
+| Individual denylist-category tests | implemented | Added loop coverage to `mcp.test.js` |
+| Full invalid-input tests per MCP tool | implemented | Shipped in `validation.test.js` |
+| Resource-specific tests | implemented | Shipped in `resources.test.js` |
+| Startup-warning regression test (`rulesPath` omitting built-ins) | implemented | Shipped in `startup.test.js` |
+| Packaged-artifact MCP smoke verification | implemented | Clean packed-install verification passes. |
 
 ---
 
