@@ -15,7 +15,7 @@ Last updated: reflects v0.13 static-engine backlog implementation and verificati
 | Item | Status | Notes |
 |---|---|---|
 | Property tests for priority rules | pending | Fast-check coverage now runs for `hardcoded-secret-001`, `sql-injection-js-001`, and `unrestricted-code-exec-001`; property files for the shipped PHP/Go SQL variants remain. |
-| Ruby/Java/Rust/C# rule families | pending | Coverage remains planned; not yet started. |
+| Ruby/Java/Rust/C# rule families | implemented | Rules and full adversarial fixtures implemented for Ruby, Java, C#/.NET (SQLi & CORS) and Rust (SQLi only; CORS deferred). |
 | Full adversarial fixtures | implemented | Three adversarial variants (formatting, escaping, nested scope) now exist for every shipped priority rule; `test:rules` reports 15 adversarial passes. |
 | Context-aware detection | implemented — not needed | The completed adversarial set has no observed false positives across all priority rules. False positive rate is 0%, well below the threshold. Thus, no rules require escalation to context-aware tier. |
 | AST tier and parser bindings | implemented — not needed | No parser binding is installed. Since no rule escalated to context-aware tier, AST tier escalation is definitively not needed based on evidence. |

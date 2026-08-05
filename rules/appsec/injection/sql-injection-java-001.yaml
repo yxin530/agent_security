@@ -1,0 +1,33 @@
+id: sql-injection-java-001
+title: "SQL Injection via String Concatenation (JDBC/JPA)"
+severity: high
+category: injection
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+detection:
+  file_patterns: ["**/*.java"]
+  extensions: [".java"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '\b(executeQuery|execute|executeUpdate|createNativeQuery)\s*\([\s\S]*?(?:["''][^"'']*["'']\s*\+|\+\s*["''][^"'']*["''])'
+      flags: "i"
+      description: "JDBC or JPA native query executed with string concatenation"
+description: >
+  Detects SQL injection vulnerabilities in Java (JDBC or Spring JPA).
+  Using string concatenation (`+`) to build SQL queries passed directly to
+  `Statement.executeQuery()`, `Statement.execute()`, or `EntityManager.createNativeQuery()`
+  allows attackers to inject arbitrary SQL.
+remediation: "Use `PreparedStatement` with `?` placeholders for JDBC, or named parameters (`:paramName`) with `setParameter` for JPA. Never concatenate user input directly into SQL strings."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.java"
+    description: "JDBC Statement with string concatenation"
+    code: 'Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT * FROM users WHERE name = ''" + name + "''");'
+  - type: true_negative
+    fixture: "safe.java"
+    description: "JDBC PreparedStatement with parameter binding"
+    code: 'PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE name = ?"); stmt.setString(1, name); ResultSet rs = stmt.executeQuery();'

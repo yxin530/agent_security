@@ -1,0 +1,44 @@
+id: wildcard-cors-rb-001
+title: "Wildcard CORS with Credentials Enabled (Rack::Cors)"
+severity: high
+category: cors
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+detection:
+  file_patterns: ["**/*.rb"]
+  extensions: [".rb"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "origins\\s+['\"]\\*['\"]"
+      flags: "i"
+      description: "Rack::Cors config sets origins to wildcard *"
+    - pattern: "credentials:\\s*true"
+      flags: "i"
+      description: "Rack::Cors config allows credentials"
+description: >
+  Detects Ruby applications (using Rack::Cors) that set both `origins '*'` and
+  `credentials: true`. Browsers reject this combination per the CORS specification,
+  but misconfigurations may still expose the application to cross-origin attacks
+  if origin reflection is used. Either restrict the origin or disable credentials.
+remediation: "Replace `origins '*'` with specific allowed origins (e.g., `origins 'https://your-app.com'`) when `credentials: true` is set. Never combine a wildcard origin with allowed credentials."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.rb"
+    description: "Rack::Cors block with wildcard origin and credentials"
+    code: |
+      allow do
+        origins '*'
+        resource '*', headers: :any, credentials: true
+      end
+  - type: true_negative
+    fixture: "safe.rb"
+    description: "Rack::Cors block with wildcard origin but no credentials"
+    code: |
+      allow do
+        origins '*'
+        resource '*', headers: :any
+      end

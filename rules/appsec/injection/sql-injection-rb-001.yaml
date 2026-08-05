@@ -1,0 +1,40 @@
+id: sql-injection-rb-001
+title: "SQL Injection via ActiveRecord Escape Hatches"
+severity: high
+category: injection
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+detection:
+  file_patterns: ["**/*.rb"]
+  extensions: [".rb"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '\b(where|find_by_sql|order|group|pluck|having)\s*[\(\s]*\s*"(?:[^"]|\\")*#\{[a-zA-Z_@$]\w*.*?\}(?:[^"]|\\")*"'
+      flags: "i"
+      description: "ActiveRecord method called with double-quoted string interpolation"
+description: >
+  Detects SQL injection vulnerabilities in Ruby on Rails ActiveRecord escape hatches.
+  Using string interpolation (`#{...}`) directly inside `where`, `find_by_sql`, `order`, etc.
+  allows attackers to inject arbitrary SQL.
+remediation: "Use parameterized queries (e.g., `User.where('name = ?', name)`) or hash conditions (`User.where(name: name)`). Never interpolate user input directly into SQL strings."
+ai_guidance:
+  watch_for:
+    - "Dynamic table names or column names which cannot be parameterized; these must be strictly allowlisted."
+  references:
+    - title: "OWASP Top 10:2021 A03 - Injection"
+      url: "https://owasp.org/Top10/A03_2021-Injection/"
+  related_rule_ids: ["sql-injection-js-001", "sql-injection-php-001", "sql-injection-go-001"]
+  reasoning_notes: "Targets double-quoted string interpolation inside common ActiveRecord methods."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.rb"
+    description: "ActiveRecord where clause with string interpolation"
+    code: 'User.where("username = ''#{params[:user]}''")'
+  - type: true_negative
+    fixture: "safe.rb"
+    description: "ActiveRecord where clause with parameterized query"
+    code: 'User.where("username = ?", params[:user])'

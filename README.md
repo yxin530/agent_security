@@ -33,8 +33,8 @@ The package also provides `agent-security-mcp`, an stdio MCP server exposing pro
 | Rule | Severity | OWASP | PDPA mapping |
 |---|---|---|---|
 | `hardcoded-secret-001` | critical | A07:2021 | Section 25 |
-| `sql-injection-js-001`, `sql-injection-php-001`, `sql-injection-go-001` | high | A03:2021 | — |
-| `wildcard-cors-js-001`, `wildcard-cors-php-001`, `wildcard-cors-go-001` | high | A05:2021 | — |
+| `sql-injection-js-001`, `sql-injection-php-001`, `sql-injection-go-001`, `sql-injection-rb-001`, `sql-injection-java-001`, `sql-injection-cs-001`, `sql-injection-rs-001` | high | A03:2021 | — |
+| `wildcard-cors-js-001`, `wildcard-cors-php-001`, `wildcard-cors-go-001`, `wildcard-cors-rb-001`, `wildcard-cors-java-001`, `wildcard-cors-cs-001` | high | A05:2021 | — |
 | `missing-rate-limit-js-001`, `missing-rate-limit-php-001`, `missing-rate-limit-go-001` | medium | A04:2021 | — |
 | `pii-pattern-001` | high | A09:2021 | — |
 | `pii-in-logs-js-001`, `pii-in-logs-py-001`, `pii-in-logs-php-001`, `pii-in-logs-go-001` | high | A09:2021 | — |
@@ -58,7 +58,10 @@ Agent-threat rules use OWASP LLM and MITRE ATLAS mappings:
 | PHP/Laravel | SQL injection, CORS, rate limiting, PII logs | — |
 | Go | SQL injection, CORS, rate limiting, PII logs | — |
 | Python | PII log-call variant; SQL injection remains v0.1-supported | — |
-| Ruby, Java, Rust, C#/.NET | None | Future versions |
+| Ruby | SQL injection, CORS | — |
+| Java | SQL injection, CORS | — |
+| C#/.NET | SQL injection, CORS | — |
+| Rust | SQL injection | CORS (deferred) |
 
 Skills: [general security audit](skills/security-audit/SKILL.md) for OWASP/ATLAS framing, or [PDPA security audit](skills/pdpa-security-audit/SKILL.md) for Malaysian compliance framing. Read the [PDPA mapping notes](docs/legal/pdpa-2024-mapping.md), [OWASP web docs](docs/owasp/web-top-10.md), [OWASP LLM docs](docs/owasp/llm-top-10.md), and [MITRE ATLAS docs](docs/frameworks/mitre-atlas.md) before relying on mappings or agent-generated explanations.
 

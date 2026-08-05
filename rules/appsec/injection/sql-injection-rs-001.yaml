@@ -1,0 +1,34 @@
+id: sql-injection-rs-001
+title: "SQL Injection via sqlx and format! Macro"
+severity: high
+category: injection
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+detection:
+  file_patterns: ["**/*.rs"]
+  extensions: [".rs"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '\bsqlx::query(?:_as)?(?:_unchecked)?!?\s*\(\s*&?\s*format!\s*\(\s*"(?:[^"]|\\")*\{[a-zA-Z0-9_]*\}(?:[^"]|\\")*"'
+      flags: "i"
+      description: "sqlx::query called with an inline format! macro containing interpolated variables"
+description: >
+  Detects SQL injection vulnerabilities in Rust using the `sqlx` crate.
+  While the `sqlx::query!` macro provides compile-time query checking, developers
+  often fall back to the `sqlx::query` function combined with the `format!` macro
+  when dynamic queries are needed. If user input is interpolated into this `format!`
+  string, it creates a severe SQL injection vulnerability.
+remediation: "Use `sqlx::query(\"...\").bind(var)` for dynamic runtime queries. Never use `format!` to interpolate variables directly into SQL queries."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.rs"
+    description: "sqlx query using format! interpolation"
+    code: 'sqlx::query(&format!("SELECT * FROM users WHERE name = ''{}''", name)).fetch_all(&pool).await?;'
+  - type: true_negative
+    fixture: "safe.rs"
+    description: "sqlx query using bind parameterization"
+    code: 'sqlx::query("SELECT * FROM users WHERE name = $1").bind(name).fetch_all(&pool).await?;'

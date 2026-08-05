@@ -1,0 +1,42 @@
+id: wildcard-cors-java-001
+title: "Wildcard CORS with Credentials Enabled (Spring CrossOrigin)"
+severity: high
+category: cors
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+detection:
+  file_patterns: ["**/*.java"]
+  extensions: [".java"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: '@CrossOrigin[^)]*["'']\*["'']'
+      flags: "i"
+      description: "Spring @CrossOrigin annotation sets origins to wildcard *"
+    - pattern: 'allowCredentials\s*=\s*["'']?true["'']?'
+      flags: "i"
+      description: "Spring @CrossOrigin annotation allows credentials"
+description: >
+  Detects Java Spring applications that set `@CrossOrigin` with both a wildcard origin (`*`)
+  and `allowCredentials = "true"`. Browsers reject this combination per the CORS specification,
+  but it represents a dangerous intent that may be exposed by fallback proxy logic.
+  Either restrict the origin or disable credentials.
+remediation: "Replace `origins = \"*\"` with specific allowed origins (e.g., `origins = \"https://your-app.com\"`) when `allowCredentials = \"true\"` is set. Never combine a wildcard origin with allowed credentials."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.java"
+    description: "Spring @CrossOrigin with wildcard origin and credentials"
+    code: |
+      @CrossOrigin(origins = "*", allowCredentials = "true")
+      @GetMapping("/api")
+      public String getApi() { return "data"; }
+  - type: true_negative
+    fixture: "safe.java"
+    description: "Spring @CrossOrigin with wildcard origin but no credentials"
+    code: |
+      @CrossOrigin(origins = "*")
+      @GetMapping("/api")
+      public String getApi() { return "data"; }

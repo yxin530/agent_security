@@ -1,0 +1,44 @@
+id: wildcard-cors-cs-001
+title: "Wildcard CORS with Credentials Enabled (ASP.NET Core)"
+severity: high
+category: cors
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+detection:
+  file_patterns: ["**/*.cs"]
+  extensions: [".cs"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: '\.AllowAnyOrigin\s*\(\s*\)'
+      flags: "i"
+      description: "CORS policy builder sets AllowAnyOrigin"
+    - pattern: '\.AllowCredentials\s*\(\s*\)'
+      flags: "i"
+      description: "CORS policy builder sets AllowCredentials"
+description: >
+  Detects ASP.NET Core applications that combine `.AllowAnyOrigin()` with `.AllowCredentials()`
+  in a CORS policy builder. While modern ASP.NET Core will often throw an exception at runtime
+  if this exact combination is executed, it is a common AI-generated mistake and a clear sign
+  of dangerous intent that should be flagged statically.
+remediation: "Use `.WithOrigins(\"https://your-app.com\")` when calling `.AllowCredentials()`. Never combine a wildcard origin with allowed credentials."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.cs"
+    description: "CORS policy with both AllowAnyOrigin and AllowCredentials"
+    code: |
+      services.AddCors(options => {
+          options.AddPolicy("CorsPolicy",
+              builder => builder.AllowAnyOrigin().AllowCredentials());
+      });
+  - type: true_negative
+    fixture: "safe.cs"
+    description: "CORS policy with AllowAnyOrigin but no credentials"
+    code: |
+      services.AddCors(options => {
+          options.AddPolicy("CorsPolicy",
+              builder => builder.AllowAnyOrigin().AllowAnyMethod());
+      });

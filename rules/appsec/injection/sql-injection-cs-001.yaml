@@ -1,0 +1,32 @@
+id: sql-injection-cs-001
+title: "SQL Injection via EF Core Raw SQL Methods"
+severity: high
+category: injection
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+detection:
+  file_patterns: ["**/*.cs"]
+  extensions: [".cs"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: '\b(FromSqlRaw|ExecuteSqlRaw(?:Async)?)\s*\(\s*\$"(?:[^"]|\\")*\{[a-zA-Z_]\w*.*?\}(?:[^"]|\\")*"'
+      flags: "i"
+      description: "EF Core raw SQL method called with string interpolation"
+description: >
+  Detects SQL injection vulnerabilities in C#/.NET Entity Framework Core.
+  Using string interpolation (`$"..."`) directly inside `FromSqlRaw`, `ExecuteSqlRaw`, or
+  `ExecuteSqlRawAsync` allows attackers to inject arbitrary SQL.
+remediation: "Use `FromSqlInterpolated` or `ExecuteSqlInterpolated` which safely parameterize interpolated strings, or pass parameters explicitly to `FromSqlRaw(query, param)`."
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.cs"
+    description: "EF Core FromSqlRaw with string interpolation"
+    code: 'var users = context.Users.FromSqlRaw($"SELECT * FROM users WHERE Name = ''{name}''").ToList();'
+  - type: true_negative
+    fixture: "safe.cs"
+    description: "EF Core FromSqlInterpolated used safely"
+    code: 'var users = context.Users.FromSqlInterpolated($"SELECT * FROM users WHERE Name = {name}").ToList();'
