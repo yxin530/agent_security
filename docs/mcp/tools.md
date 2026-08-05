@@ -8,4 +8,6 @@ Tools are request/response operations. `inspect_runtime_event` accepts exactly o
 - `get_rule({"ruleId":"hardcoded-secret-001"})` returns rule details.
 - `validate_rules({})` validates the configured rule set.
 
+`list_rules` and `validate_rules` include `rulesetVersion`, an informational package/version identifier for the loaded rules.
+
 All tool contracts are maintained under `mcp/schemas/`.

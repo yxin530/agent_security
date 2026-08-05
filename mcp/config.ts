@@ -4,10 +4,12 @@ import { DEFAULT_LIMITS, Limits } from './security/limits';
 
 export interface McpConfig extends Limits {
   ruleDirectory: string;
+  rulesPath?: string;
   allowedScanRoots: string[];
   enabledTools: string[];
   enabledRules: string[] | null;
-  loggingLevel: 'silent' | 'info' | 'debug';
+  loggingLevel: 'silent' | 'info' | 'debug' | 'audit';
+  auditLogPath?: string;
   redactionEnabled: boolean;
 }
 
@@ -21,7 +23,8 @@ export function loadConfig(): McpConfig {
   const configuredRoots = file.allowedScanRoots ?? (process.env.AGENT_SECURITY_MCP_ALLOWED_ROOTS?.split(path.delimiter).filter(Boolean) ?? []);
   if (configuredRoots.length === 0) throw new Error('MCP server requires explicit allowedScanRoots configuration');
   return {
-    ruleDirectory: path.resolve(file.ruleDirectory ?? path.join(root, 'rules')),
+    ruleDirectory: path.resolve(file.rulesPath ?? file.ruleDirectory ?? path.join(root, 'rules')),
+    rulesPath: file.rulesPath ? path.resolve(file.rulesPath) : undefined,
     allowedScanRoots: configuredRoots.map(value => fs.realpathSync(path.resolve(value))),
     maxScanSizeBytes: file.maxScanSizeBytes ?? DEFAULT_LIMITS.maxScanSizeBytes,
     scanTimeoutMs: file.scanTimeoutMs ?? DEFAULT_LIMITS.scanTimeoutMs,
@@ -29,6 +32,7 @@ export function loadConfig(): McpConfig {
     enabledTools: file.enabledTools ?? ALL_TOOLS,
     enabledRules: file.enabledRules ?? null,
     loggingLevel: file.loggingLevel ?? 'info',
+    auditLogPath: file.auditLogPath ? path.resolve(file.auditLogPath) : undefined,
     redactionEnabled: file.redactionEnabled ?? true,
   };
 }

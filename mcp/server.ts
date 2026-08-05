@@ -13,16 +13,19 @@ import { coverageText } from './resources/coverage-resource';
 import { documentationText } from './resources/docs-resource';
 import { ruleListText, ruleText } from './resources/rules-resource';
 import { safeError } from './security/redaction';
+import { writeAudit } from './logging/audit-log';
+import { diagnostic } from './logging/diagnostics';
 
 export function createServer(config = loadConfig()): McpServer {
   const server = new McpServer({ name: 'agent-security', version: '0.9.0' }, { capabilities: { tools: {}, resources: {} } });
-  const wrap = (fn: (args: any) => any) => async (args: any) => { try { return fn(args); } catch (error) { return errorResult(safeError(error)); } };
+  const wrap = (name: string, fn: (args: any) => any) => async (args: any) => { const started = Date.now(); try { const response = fn(args); writeAudit(config, { tool: name, input: args, outcome: 'success', durationMs: Date.now() - started }); return response; } catch (error) { writeAudit(config, { tool: name, input: args, outcome: 'error', durationMs: Date.now() - started }); return errorResult(safeError(error)); } };
   const enabled = (name: string) => config.enabledTools.includes(name);
-  if (enabled('scan_project')) server.registerTool('scan_project', { description: 'Scan an allowed project for security findings.', inputSchema: scanProjectZod }, wrap((args) => scanProject(args, config)));
-  if (enabled('inspect_runtime_event')) server.registerTool('inspect_runtime_event', { description: 'Inspect one runtime event for security findings.', inputSchema: runtimeZod }, wrap((args) => inspectRuntimeEventTool(args, config)));
-  if (enabled('list_rules')) server.registerTool('list_rules', { description: 'List available security rules.', inputSchema: {} }, wrap(() => listRules(config)));
-  if (enabled('get_rule')) server.registerTool('get_rule', { description: 'Get one security rule.', inputSchema: ruleZod }, wrap((args) => getRule(args, config)));
-  if (enabled('validate_rules')) server.registerTool('validate_rules', { description: 'Validate the configured rule set.', inputSchema: {} }, wrap(() => validateRules(config)));
+  if (enabled('scan_project')) server.registerTool('scan_project', { description: 'Scan an allowed project for security findings.', inputSchema: scanProjectZod }, wrap('scan_project', (args) => scanProject(args, config)));
+  if (enabled('inspect_runtime_event')) server.registerTool('inspect_runtime_event', { description: 'Inspect one runtime event for security findings.', inputSchema: runtimeZod }, wrap('inspect_runtime_event', (args) => inspectRuntimeEventTool(args, config)));
+  if (enabled('list_rules')) server.registerTool('list_rules', { description: 'List available security rules.', inputSchema: {} }, wrap('list_rules', () => listRules(config)));
+  if (enabled('get_rule')) server.registerTool('get_rule', { description: 'Get one security rule.', inputSchema: ruleZod }, wrap('get_rule', (args) => getRule(args, config)));
+  if (enabled('validate_rules')) server.registerTool('validate_rules', { description: 'Validate the configured rule set.', inputSchema: {} }, wrap('validate_rules', () => validateRules(config)));
+  if (config.loggingLevel === 'audit') diagnostic('audit logging is enabled');
   server.registerResource('rules', 'security://rules', { description: 'Security rule summaries', mimeType: 'application/json' }, async () => ({ contents: [{ uri: 'security://rules', mimeType: 'application/json', text: ruleListText(config) }] }));
   server.registerResource('coverage', 'security://coverage', { description: 'Agent threat coverage', mimeType: 'text/markdown' }, async () => ({ contents: [{ uri: 'security://coverage', mimeType: 'text/markdown', text: coverageText() }] }));
   server.registerResource('rule', new ResourceTemplate('security://rules/{ruleId}', { list: undefined }), { description: 'Security rule details', mimeType: 'application/json' }, async (uri, variables) => ({ contents: [{ uri: uri.href, mimeType: 'application/json', text: ruleText(config, String(variables.ruleId)) }] }));

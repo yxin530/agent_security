@@ -19,6 +19,8 @@ export interface Finding {
 }
 
 export let lastScannedFiles = 0;
+export interface ScanOptions { timeoutMs?: number; enabledRules?: string[] | null; }
+export interface ScanResult { findings: Finding[]; truncated: boolean; }
 
 function walkFiles(dir: string): string[] {
   const files: string[] = [];
@@ -99,12 +101,16 @@ function matchingLine(rule: Rule, lines: string[]): { line: number; column: numb
   return null;
 }
 
-export function scan(rulesDir: string, targetDir: string): Finding[] {
+export function scanDetailed(rulesDir: string, targetDir: string, options: ScanOptions = {}): ScanResult {
   if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) throw new Error(`Target must be an existing directory: ${targetDir}`);
-  const rules = loadRules(rulesDir);
+  const loadedRules = loadRules(rulesDir);
+  const rules = options.enabledRules ? loadedRules.filter(rule => options.enabledRules?.includes(rule.id)) : loadedRules;
   const findings: Finding[] = [];
+  const started = Date.now();
+  let truncated = false;
   lastScannedFiles = 0;
   for (const file of walkFiles(targetDir)) {
+    if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) { truncated = true; break; }
     const raw = fs.readFileSync(file);
     if (!isText(raw)) continue;
     const extension = path.extname(file);
@@ -113,6 +119,7 @@ export function scan(rulesDir: string, targetDir: string): Finding[] {
     if (rules.some(rule => rule.scope === 'language-agnostic' || (rule.detection.file_patterns ?? []).some(pattern => matchesPattern(relative, pattern)))) lastScannedFiles++;
     const lines = content.split(/\r?\n/);
     for (const rule of rules) {
+      if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) { truncated = true; break; }
       if (rule.scope === 'language-specific') {
         const patterns = rule.detection.file_patterns ?? [];
         if (!patterns.some(pattern => matchesPattern(relative, pattern))) continue;
@@ -125,7 +132,11 @@ export function scan(rulesDir: string, targetDir: string): Finding[] {
         detectionTier: rule.detection_tier, source: 'static' });
     }
   }
-  return findings;
+  return { findings, truncated };
+}
+
+export function scan(rulesDir: string, targetDir: string, options: ScanOptions = {}): Finding[] {
+  return scanDetailed(rulesDir, targetDir, options).findings;
 }
 
 function arg(name: string, fallback: string): string {
@@ -137,7 +148,10 @@ if (require.main === module) {
   const root = path.resolve(__dirname, '../..');
   const target = arg('--target', process.cwd());
   try {
-    const findings = scan(arg('--rules', path.join(root, 'rules')), target);
+    const timeoutArg = arg('--timeout', '');
+    const timeoutMs = timeoutArg ? Number(timeoutArg) : undefined;
+    const result = scanDetailed(arg('--rules', path.join(root, 'rules')), target, Number.isFinite(timeoutMs) ? { timeoutMs } : {});
+    const findings = result.findings;
   const format = arg('--format', 'text');
     if (format === 'json') console.log(formatJson(findings, lastScannedFiles));
     else console.log(findings.length === 0 ? 'No findings.' : formatTerminal(findings));
