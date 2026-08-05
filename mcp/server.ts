@@ -17,6 +17,12 @@ import { writeAudit } from './logging/audit-log';
 import { diagnostic } from './logging/diagnostics';
 
 export function createServer(config = loadConfig()): McpServer {
+  if (config.rulesPath) {
+    const builtIn = ['unrestricted-filesystem-access-001','unrestricted-shell-exec-001','missing-tool-arg-validation-001','missing-tool-auth-001','missing-destructive-action-confirmation-001','excessive-tool-permissions-001','unbounded-tool-output-001','tool-ssrf-001','sensitive-data-in-resources-001','unsafe-server-instructions-001','missing-audit-logging-001','missing-tool-rate-limiting-001','tool-description-prompt-injection-001'];
+    const loaded = new Set(require('../engine/loader').loadRules(config.ruleDirectory).map((r: { id: string }) => r.id));
+    const missing = builtIn.filter(id => !loaded.has(id));
+    if (missing.length) diagnostic(`${missing.length} built-in MCP rules are not loaded because a custom rulesPath is active`);
+  }
   const server = new McpServer({ name: 'agent-security', version: '0.9.0' }, { capabilities: { tools: {}, resources: {} } });
   const wrap = (name: string, fn: (args: any) => any) => async (args: any) => { const started = Date.now(); try { const response = fn(args); writeAudit(config, { tool: name, input: args, outcome: 'success', durationMs: Date.now() - started }); return response; } catch (error) { writeAudit(config, { tool: name, input: args, outcome: 'error', durationMs: Date.now() - started }); return errorResult(safeError(error)); } };
   const enabled = (name: string) => config.enabledTools.includes(name);

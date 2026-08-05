@@ -25,4 +25,5 @@ node "$package_root/bin/agent-security.js" --version
 node "$package_root/bin/agent-security.js" --help || true
 node "$package_root/bin/agent-security.js" scan --target "$package_root/tests/fixtures/hardcoded-secret-001" --format json || test $? -eq 1
 node "$package_root/dist/monitor/cli.js" --help
+node "$repo_root/scripts/mcp-package-smoke.js" "$package_root"
 echo "Packed artifact verification passed"

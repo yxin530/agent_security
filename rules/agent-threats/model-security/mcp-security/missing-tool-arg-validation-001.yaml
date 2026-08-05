@@ -1,0 +1,11 @@
+id: missing-tool-arg-validation-001
+title: "Missing MCP Tool Argument Validation"
+severity: high
+category: model-security
+detection_tier: regex
+scope: language-agnostic
+maps_to: { owasp: ["A04:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "registerTool|tool\\(", flags: "i" }, { pattern: "args\\.", flags: "i" }, { pattern: "safeParse|parse|validate|schema", flags: "i", negate: true }] }
+description: "Detects MCP tools using arguments without visible schema validation."
+remediation: "Attach a strict schema and reject invalid arguments before execution."
+test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Tool reads unvalidated arguments" }, { type: true_negative, fixture: safe.ts, description: "Tool validates arguments" }]

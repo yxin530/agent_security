@@ -69,3 +69,5 @@ Agent-threat coverage tiers are documented in [coverage-status.md](docs/agent-th
 Rules may include structured AI Guidance for related manual review patterns. The remediation skill presents that guidance separately from scanner-verified findings.
 
 The v0.4 detectable additions include graph-query injection, tool-output injection, indirect and system-prompt injection, indirect tool injection, fine-tuning source verification, LLM error handling, unrestricted code execution, and unthrottled model output. Other taxonomy entries remain explicitly documented-only.
+
+MCP-specific static checks include filesystem and shell access, argument validation, authorization, destructive-action confirmation, excessive permissions, output bounds, SSRF, sensitive resources, unsafe instructions, audit logging, rate limiting, and tool-description prompt injection.

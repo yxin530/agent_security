@@ -1,0 +1,11 @@
+id: excessive-tool-permissions-001
+title: "Excessive MCP Tool Permissions"
+severity: high
+category: model-security
+detection_tier: regex
+scope: language-agnostic
+maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+detection: { extensions: [".json", ".ts", ".js"], scope: line, logic: OR, conditions: [{ pattern: "(permissions|capabilities|allowedTools)\\s*[:=]\\s*[^\\n]*(\\*|admin|root)", flags: "i" }] }
+description: "Detects wildcard or administrative permissions assigned to an MCP tool."
+remediation: "Grant the minimum operation and resource permissions required."
+test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Tool receives wildcard permissions" }, { type: true_negative, fixture: safe.ts, description: "Tool receives narrow permissions" }]

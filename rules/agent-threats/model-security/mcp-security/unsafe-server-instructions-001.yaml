@@ -1,0 +1,11 @@
+id: unsafe-server-instructions-001
+title: "Unsafe MCP Server Instructions"
+severity: medium
+category: model-security
+detection_tier: regex
+scope: language-agnostic
+maps_to: { owasp: ["A03:2021"], owasp_llm: "LLM01:2025", atlas: "AML.T0051" }
+detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "instructions|description", flags: "i" }, { pattern: "ignore previous|system message|do not tell|secretly", flags: "i" }] }
+description: "Detects instruction-like text embedded in MCP server metadata."
+remediation: "Keep server metadata factual and free of instruction-hijacking language."
+test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Metadata contains hidden instructions" }, { type: true_negative, fixture: safe.ts, description: "Metadata is descriptive" }]

@@ -19,7 +19,7 @@ export interface Finding {
 }
 
 export let lastScannedFiles = 0;
-export interface ScanOptions { timeoutMs?: number; enabledRules?: string[] | null; }
+export interface ScanOptions { timeoutMs?: number; enabledRules?: string[] | null; now?: () => number; }
 export interface ScanResult { findings: Finding[]; truncated: boolean; }
 
 function walkFiles(dir: string): string[] {
@@ -106,11 +106,12 @@ export function scanDetailed(rulesDir: string, targetDir: string, options: ScanO
   const loadedRules = loadRules(rulesDir);
   const rules = options.enabledRules ? loadedRules.filter(rule => options.enabledRules?.includes(rule.id)) : loadedRules;
   const findings: Finding[] = [];
-  const started = Date.now();
+  const now = options.now ?? Date.now;
+  const started = now();
   let truncated = false;
   lastScannedFiles = 0;
   for (const file of walkFiles(targetDir)) {
-    if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) { truncated = true; break; }
+    if (options.timeoutMs !== undefined && now() - started >= options.timeoutMs) { truncated = true; break; }
     const raw = fs.readFileSync(file);
     if (!isText(raw)) continue;
     const extension = path.extname(file);
@@ -119,7 +120,7 @@ export function scanDetailed(rulesDir: string, targetDir: string, options: ScanO
     if (rules.some(rule => rule.scope === 'language-agnostic' || (rule.detection.file_patterns ?? []).some(pattern => matchesPattern(relative, pattern)))) lastScannedFiles++;
     const lines = content.split(/\r?\n/);
     for (const rule of rules) {
-      if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) { truncated = true; break; }
+      if (options.timeoutMs !== undefined && now() - started >= options.timeoutMs) { truncated = true; break; }
       if (rule.scope === 'language-specific') {
         const patterns = rule.detection.file_patterns ?? [];
         if (!patterns.some(pattern => matchesPattern(relative, pattern))) continue;

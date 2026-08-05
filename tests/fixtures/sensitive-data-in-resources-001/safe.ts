@@ -1,0 +1,1 @@
+registerResource('x', () => redact(password));

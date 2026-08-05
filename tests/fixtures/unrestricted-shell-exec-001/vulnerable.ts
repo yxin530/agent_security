@@ -1,0 +1,1 @@
+exec(args.command);

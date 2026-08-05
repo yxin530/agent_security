@@ -1,0 +1,11 @@
+id: unrestricted-shell-exec-001
+title: "Unrestricted MCP Shell Execution"
+severity: critical
+category: model-security
+detection_tier: regex
+scope: language-agnostic
+maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+detection: { extensions: [".ts", ".js"], scope: line, logic: OR, conditions: [{ pattern: "(exec|spawn|execFile)\\([^)]*args", flags: "i" }] }
+description: "Detects agent-controlled command execution in an MCP handler."
+remediation: "Use a fixed command allowlist and validate every argument."
+test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Command comes from tool arguments" }, { type: true_negative, fixture: safe.ts, description: "Only an allowlisted command is used" }]

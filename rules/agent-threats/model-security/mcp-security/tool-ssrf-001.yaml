@@ -1,0 +1,11 @@
+id: tool-ssrf-001
+title: "MCP Tool SSRF Risk"
+severity: high
+category: model-security
+detection_tier: regex
+scope: language-agnostic
+maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "fetch|axios|http\\.(get|request)", flags: "i" }, { pattern: "args\\.|input\\.|url", flags: "i" }, { pattern: "allowlist|private|localhost|ipRange", flags: "i", negate: true }] }
+description: "Detects network requests using agent-controlled URLs without SSRF controls."
+remediation: "Allowlist hosts and block private, loopback, link-local, and metadata addresses."
+test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Agent controls request URL" }, { type: true_negative, fixture: safe.ts, description: "Host is allowlisted" }]

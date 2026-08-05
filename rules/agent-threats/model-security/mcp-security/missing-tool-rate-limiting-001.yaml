@@ -1,0 +1,11 @@
+id: missing-tool-rate-limiting-001
+title: "Missing MCP Tool Rate Limiting"
+severity: medium
+category: model-security
+detection_tier: regex
+scope: language-agnostic
+maps_to: { owasp: ["A04:2021"], owasp_llm: "LLM10:2025", atlas: "AML.T0048" }
+detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "registerTool|tool\\(", flags: "i" }, { pattern: "rateLimit|throttle|quota|限流", flags: "i", negate: true }] }
+description: "Detects MCP tools without visible invocation limits."
+remediation: "Apply per-client and per-tool quotas with bounded concurrency."
+test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Tool has no quota" }, { type: true_negative, fixture: safe.ts, description: "Tool applies a quota" }]

@@ -1,0 +1,15 @@
+id: unrestricted-filesystem-access-001
+title: "Unrestricted MCP Filesystem Access"
+severity: high
+category: model-security
+detection_tier: regex
+scope: language-agnostic
+maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+detection:
+  extensions: [".ts", ".js"]
+  scope: line
+  logic: OR
+  conditions: [{ pattern: "fs\\.(readFile|writeFile|rm|unlink|readdir)\\([^)]*args", flags: "i" }]
+description: "Detects MCP handlers passing agent-controlled arguments directly to filesystem operations."
+remediation: "Constrain filesystem access to an explicit root and validate canonical paths before access."
+test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Agent input reaches filesystem API" }, { type: true_negative, fixture: safe.ts, description: "Filesystem path is fixed and validated" }]
