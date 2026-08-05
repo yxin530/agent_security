@@ -22,7 +22,11 @@ npm run test:rules
 
 The package is published to GitHub Packages, not the public npm registry. GitHub authentication with a token having at least `read:packages` is required for private/authenticated installs. The scanner exits with code 0 when no findings are emitted and code 1 when findings are present. Use `--format json` for structured output.
 
-For a clean packed-artifact check before publishing, run `npm run verify:package`. The runtime monitor accepts NDJSON tool-call events through `agent-security-monitor --input <file>` or stdin; see [the monitor CLI guide](docs/monitor/cli.md).
+For a clean packed-artifact check before publishing, run `npm run verify:package`. The runtime monitor accepts NDJSON tool-call events through `agent-security-monitor --input <file>` or stdin and currently provides runtime detection for unvalidated agent tool arguments; see [the monitor CLI guide](docs/monitor/cli.md).
+
+## MCP server
+
+The package also provides `agent-security-mcp`, an stdio MCP server exposing project scanning, rule lookup, rule validation, runtime-event inspection, and read-only documentation resources. It requires explicit `allowedScanRoots` configuration and is documented in [the MCP architecture](docs/mcp/architecture.md), [tools](docs/mcp/tools.md), [security model](docs/mcp/security-model.md), and [client configuration](docs/mcp/client-configuration.md).
 
 ## Rules
 

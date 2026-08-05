@@ -4,7 +4,7 @@ Coverage tiers describe what is shipped: `detectable` has a tested static rule; 
 
 | Threat-Type | Coverage Tier | Rule(s) |
 |---|---|---|
-| agent-manipulation/cross-agent | detectable | [unvalidated-tool-args-001](../../rules/agent-threats/agent-manipulation/cross-agent/unvalidated-tool-args-001.yaml) |
+| agent-manipulation/cross-agent | runtime-detectable | [unvalidated-tool-args-001](../../rules/agent-threats/agent-manipulation/cross-agent/unvalidated-tool-args-001.yaml), `agent-security-monitor` |
 | agent-manipulation/jailbreak | documented-only | — |
 | agent-manipulation/ai-ethics | documented-only | — |
 | agent-manipulation/human-trust | documented-only | — |

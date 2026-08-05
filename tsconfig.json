@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["engine/**/*.ts", "monitor/**/*.ts"],
+  "include": ["engine/**/*.ts", "monitor/**/*.ts", "mcp/**/*.ts"],
   "exclude": ["node_modules", "dist", "tests"]
 }

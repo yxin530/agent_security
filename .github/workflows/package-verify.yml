@@ -46,4 +46,6 @@ jobs:
           PKG="$VERIFY_DIR/node_modules/@yxin530/agent-security-engine"
           node "$PKG/dist/engine/loader.js" --validate
           node "$PKG/dist/engine/test-runner.js"
+          node "$PKG/bin/agent-security.js" --version
           node "$PKG/bin/agent-security.js" --help
+          node "$PKG/dist/monitor/cli.js" --help
