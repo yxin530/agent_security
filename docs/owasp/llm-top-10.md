@@ -38,3 +38,5 @@ The following taxonomy entries are documented references; `detectable` means a t
 - `model-abuse/malware-issues` — detectable: unrestricted code execution expands harmful capability.
 - `model-abuse/extraction-issues` — detectable: unthrottled output can support extraction.
 - `model-abuse/money-laundering` — documented-only: financial-crime facilitation is domain-contextual.
+- `model-abuse/deepfake` — documented-only: output-quality judgment requires content classification, not a static pattern.
+- `model-abuse/human-trafficking` — documented-only: real-world harm category with no source-code signature.

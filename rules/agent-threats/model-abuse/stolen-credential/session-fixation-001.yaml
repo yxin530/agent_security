@@ -1,0 +1,52 @@
+id: session-fixation-001
+title: "Session Fixation via Missing Token Regeneration"
+severity: high
+category: agent-threats
+scope: language-specific
+detection_tier: regex
+ai_guidance:
+  watch_for:
+    - "Look for session setup during authentication without a previous session regeneration or invalidation."
+  references:
+    - title: "OWASP Session Fixation"
+      url: "https://owasp.org/www-community/attacks/Session_fixation"
+  related_rule_ids:
+    - "credential-stuffing-pattern-001"
+maps_to:
+  owasp:
+    - "A07:2021"
+  atlas: "AML.T0043"
+detection:
+  extensions: [".js", ".ts"]
+  file_patterns: ["*.js", "*.ts"]
+  scope: file
+  conditions:
+    - pattern: '(?:req\.session\.(?:user|userId|role|auth)\s*=|session\.set\(|jwt\.sign\()'
+      flags: "i"
+      description: "Detects a successful authentication assignment"
+    - pattern: '(?:session\.regenerate|req\.session\.regenerate|session\.cycle|ctx\.session\.destroy)'
+      flags: "i"
+      negate: true
+      description: "Absence of session regeneration"
+  logic: AND
+description: |
+  Detects a function body containing a successful authentication assignment (e.g. `req.session.user =`, `session.set()`, `jwt.sign()`) where no session regeneration call is present within the same function scope.
+remediation: |
+  Always regenerate the session token after a successful authentication event to prevent session fixation.
+test_cases:
+  - type: true_positive
+    description: "login handler setting req.session.user with no regenerate call"
+    fixture: |
+      function login(req, res) {
+        req.session.user = { id: 1 };
+        res.send('ok');
+      }
+  - type: true_negative
+    description: "login handler that calls req.session.regenerate() before setting user data"
+    fixture: |
+      function login(req, res) {
+        req.session.regenerate(() => {
+          req.session.user = { id: 1 };
+          res.send('ok');
+        });
+      }

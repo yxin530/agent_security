@@ -1,0 +1,32 @@
+id: onion-callback-endpoint-001
+title: "Hardcoded Onion Callback Endpoint"
+severity: high
+category: model-abuse
+detection_tier: regex
+scope: language-agnostic
+maps_to:
+  owasp: ["A08:2021"]
+  owasp_llm: "LLM02:2025"
+  atlas: "AML.T0046"
+detection:
+  file_patterns: ["**/*"]
+  extensions: [".js", ".ts", ".py", ".go", ".rs", ".java", ".cs", ".rb", ".php"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '[a-z2-7]{16,56}\.onion'
+      flags: "i"
+    - pattern: '(fetch|axios|http\.request|requests\.(get|post)|socket|dial)'
+      flags: "i"
+description: "Detects a hardcoded .onion address pattern used as a target in an outbound network call. Note: This warrants investigation, not an automatic verdict of malicious C2 infrastructure, as legitimate Tor-related privacy tooling exists. It is a narrow-scope detector for hardcoded .onion targets."
+remediation: "Review the necessity of the .onion callback. Ensure it is authorized and intended behavior."
+ai_guidance:
+  watch_for:
+    - "A match warrants investigation, not an automatic verdict of malicious C2 infrastructure. Verify if the application has a legitimate Tor-related privacy purpose."
+  references:
+    - title: "MITRE ATLAS: Exfiltration via ML API"
+      url: "https://atlas.mitre.org/techniques/AML.T0046"
+  related_rule_ids: []
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Hardcoded .onion in fetch", code: "fetch('http://expyuz5tatigvkfwekwpqreuzqqex.onion/callback');" }
+  - { type: true_negative, fixture: safe.ts, description: ".onion in comment only", code: "// This uses a hidden service like expyuz5tatigvkfwekwpqreuzqqex.onion" }

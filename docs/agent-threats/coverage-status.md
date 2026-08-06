@@ -4,6 +4,7 @@ Coverage tiers describe what is shipped: `detectable` has a tested static rule; 
 
 | Threat-Type | Coverage Tier | Rule(s) |
 |---|---|---|
+| supply-chain/dependency-confusion | detectable | [dependency-confusion-001](../../rules/agent-threats/supply-chain/dependency-confusion/dependency-confusion-001.yaml) |
 | agent-manipulation/cross-agent | runtime-detectable | [unvalidated-tool-args-001](../../rules/agent-threats/agent-manipulation/cross-agent/unvalidated-tool-args-001.yaml), `agent-security-monitor` |
 | agent-manipulation/jailbreak | documented-only | — |
 | agent-manipulation/ai-ethics | documented-only | — |
@@ -20,12 +21,19 @@ Coverage tiers describe what is shipped: `detectable` has a tested static rule; 
 | prompt-injection/indirect-tool | detectable | [indirect-tool-injection-001](../../rules/agent-threats/prompt-injection/indirect-tool/indirect-tool-injection-001.yaml) |
 | model-security/model-behavior | runtime-detectable | [hardcoded-llm-key-001](../../rules/agent-threats/model-security/model-behavior/hardcoded-llm-key-001.yaml), `agent-security-monitor` |
 | model-security/malicious-fine-tuning | detectable | [unverified-fine-tune-source-001](../../rules/agent-threats/model-security/malicious-fine-tuning/unverified-fine-tune-source-001.yaml) |
-| model-security/model-catch-issue | runtime-detectable | [missing-llm-error-handling-001](../../rules/agent-threats/model-security/model-catch-issue/missing-llm-error-handling-001.yaml), [permissive-mcp-grant-001](../../rules/agent-threats/model-security/model-catch-issue/permissive-mcp-grant-001.yaml), `agent-security-monitor` |
+| model-security/model-catch-issue | runtime-detectable | [missing-llm-error-handling-001](../../rules/agent-threats/model-security/model-catch-issue/missing-llm-error-handling-001.yaml), [permissive-mcp-grant-001](../../rules/agent-threats/model-security/model-catch-issue/permissive-mcp-grant-001.yaml), [missing-output-validation-001](../../rules/agent-threats/model-security/model-catch-issue/missing-output-validation-001.yaml), `agent-security-monitor` |
 | model-security/mcp-security | detectable | `unrestricted-filesystem-access-001`, `unrestricted-shell-exec-001`, `missing-tool-arg-validation-001`, `missing-tool-auth-001`, `missing-destructive-action-confirmation-001`, `excessive-tool-permissions-001`, `unbounded-tool-output-001`, `tool-ssrf-001`, `sensitive-data-in-resources-001`, `unsafe-server-instructions-001`, `missing-audit-logging-001`, `missing-tool-rate-limiting-001`, `tool-description-prompt-injection-001` |
+| appsec/data-lifecycle | detectable | [missing-breach-notification-001](../../rules/appsec/data-lifecycle/missing-breach-notification-001.yaml) |
 | model-abuse/self-harm | documented-only | — |
 | model-abuse/malicious-use | detectable | [no-llm-rate-limit-001](../../rules/agent-threats/model-abuse/malicious-use/no-llm-rate-limit-001.yaml) |
 | model-abuse/malware-issues | detectable | [unrestricted-code-exec-001](../../rules/agent-threats/model-abuse/malware-issues/unrestricted-code-exec-001.yaml), `unvalidated-agent-write-001` |
 | model-abuse/extraction-issues | detectable | [unthrottled-model-output-001](../../rules/agent-threats/model-abuse/extraction-issues/unthrottled-model-output-001.yaml) |
 | model-abuse/money-laundering | documented-only | — |
+| model-abuse/stolen-credential | detectable | [credential-stuffing-pattern-001](../../rules/agent-threats/model-abuse/stolen-credential/credential-stuffing-pattern-001.yaml), [session-fixation-001](../../rules/agent-threats/model-abuse/stolen-credential/session-fixation-001.yaml) |
+| model-abuse/darknet-control | detectable | [onion-callback-endpoint-001](../../rules/agent-threats/model-abuse/darknet-control/onion-callback-endpoint-001.yaml), [i2p-endpoint-001](../../rules/agent-threats/model-abuse/darknet-control/i2p-endpoint-001.yaml) |
+| model-abuse/trojan | detectable | [remote-payload-exec-001](../../rules/agent-threats/model-abuse/trojan/remote-payload-exec-001.yaml), [insecure-auto-update-001](../../rules/agent-threats/model-abuse/trojan/insecure-auto-update-001.yaml) |
+| model-abuse/pii-leakage-in-output | runtime-detectable | `agent-security-monitor` |
+| model-abuse/deepfake | documented-only | — |
+| model-abuse/human-trafficking | documented-only | — |
 
 The two `jailbreak` threat-types are intentionally distinct: agent-manipulation/jailbreak concerns agent decision/tool-use manipulation, while prompt-injection/jailbreak concerns jailbreak delivered through prompt injection.

@@ -1,0 +1,38 @@
+id: insecure-auto-update-001
+title: "Insecure Auto-Update / Dynamic Payload Exec"
+severity: high
+category: agent-threats
+scope: language-specific
+detection_tier: regex
+ai_guidance:
+  watch_for:
+    - "Verify if the package installation is sourced from an untrusted runtime input."
+  references:
+    - title: "Insecure Auto-Update"
+      url: "https://owasp.org/www-project-top-ten/"
+  related_rule_ids:
+    - "remote-payload-exec-001"
+maps_to:
+  owasp:
+    - "A08:2021"
+  owasp_llm: "LLM03:2025"
+  atlas: "AML.T0048"
+detection:
+  extensions: [".js", ".ts", ".py"]
+  file_patterns: ["*.js", "*.ts", "*.py"]
+  scope: line
+  conditions:
+    - pattern: '(?:npm\s+update\s+--force|npm\s+install\s+(?:--save\s+)?(?:\$|\{)|pip\s+install\s+--upgrade\s+(?:\$|\{)|go\s+get\s+-u\s+(?:\$|\{))'
+      flags: "i"
+      description: "Detects dynamic installation patterns like npm update --force or unpinned package names in string interpolation"
+description: |
+  Detects dynamic package installation commands (e.g. `npm update --force`, `npm install <dynamic>`, `pip install --upgrade <dynamic>`) where the package name or version is sourced from a variable (not a string literal pinned version).
+remediation: |
+  Do not use runtime variables for package versions or force upgrades without strictly validating the source. Pin versions for secure, deterministic builds.
+test_cases:
+  - type: true_positive
+    description: "dynamic package install variable"
+    fixture: "exec(`npm install ${packageName}`);"
+  - type: true_negative
+    description: "pinned literal version"
+    fixture: "exec(`npm install lodash@4.17.21`);"

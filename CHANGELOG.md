@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Diagnosed and fixed the MCP packaged smoke-test's silent-success behavior by emitting explicit handshake and `list_rules` verification output. A genuinely clean npm install remains environment-dependent when the registry/cache is unavailable.
+- Evaluated and intentionally excluded `deepfake` and `human-trafficking` Threat-Types from static Rules because they lack source-code signatures (documented-only). Added `stolen-credential`, `darknet-control`, and `trojan` rules.
+  - See architecture-v0.14.md for the complete detectability assessment.
 
 ## 0.6.2
 

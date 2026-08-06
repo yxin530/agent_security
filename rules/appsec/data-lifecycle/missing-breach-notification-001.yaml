@@ -1,0 +1,44 @@
+id: missing-breach-notification-001
+title: "Missing Data Breach Notification"
+severity: medium
+category: appsec
+scope: language-specific
+detection_tier: regex
+ai_guidance:
+  watch_for:
+    - "Ensure a data breach notification or proper logging is in place when handling errors involving personal data."
+  references:
+    - title: "PDPA Amendment Act 2024"
+      url: "https://www.pdp.gov.my/ppdpv1/en/akta/personal-data-protection-amendment-act-2024/"
+  related_rule_ids:
+    - "missing-llm-error-handling-001"
+maps_to:
+  owasp:
+    - "A09:2021"
+  pdpa: "Section 12B"
+detection:
+  extensions: [".js", ".ts"]
+  file_patterns: ["*.js", "*.ts"]
+  scope: file
+  conditions:
+    - pattern: 'catch\s*\([^)]*\)\s*\{[^\}]*(?:personalData|pii|icNumber|nric|passport|userData|users|customers|members)[^\}]*\}'
+      flags: "i"
+      description: "Detects catch blocks handling PII with no logging or notification calls"
+    - pattern: 'console\.(?:error|warn)|logger\.|winston\.|appendFile|sendEmail|notify|alert'
+      flags: "i"
+      negate: true
+      description: "Absence of logging or notification"
+  logic: AND
+description: |
+  Detects a catch block or error handler operating on personal data fields where no logging call and no notification/alert call is present in the catch branch.
+remediation: |
+  Implement a logging or alerting mechanism inside the catch block to ensure data access/breach failures are notified appropriately.
+test_cases:
+  - type: true_positive
+    description: "catch block on PII access with no log or notify call"
+    fixture: |
+      try { db.query('SELECT * FROM users'); } catch (e) { let userData = null; }
+  - type: true_negative
+    description: "catch block that calls logger.error() and notifyDPO()"
+    fixture: |
+      try { db.query('SELECT * FROM users'); } catch (e) { logger.error(e); notifyDPO(); }

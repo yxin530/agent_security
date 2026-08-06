@@ -6,9 +6,32 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
-Last updated: reflects v0.13 static-engine backlog implementation and verification work.
+Last updated: reflects v0.15 (Supply-Chain, Output Validation, MCP Hardening, Skill Wiring).
 
 ---
+
+## v0.15 Additions (Supply-Chain, Output Validation, MCP Hardening & Skill Wiring)
+
+| Item | Status | Notes |
+|---|---|---|
+| Detectability Assessment (Req 110) | implemented | Completed in `architecture-v0.15.md` before writing rules. |
+| Supply-chain/Output/PDPA Rules (Req 111–113) | implemented | Created `dependency-confusion-001`, `missing-output-validation-001`, and `missing-breach-notification-001`. Updated PDPA mapping docs. |
+| Credential & Trojan Rules (Req 114–115) | implemented | Created `session-fixation-001` and `insecure-auto-update-001`. |
+| Darknet Rule (Req 116) | implemented | Created `i2p-endpoint-001`. |
+| Runtime PII Detection (Req 117) | implemented | Added PII pattern detection for `llm-output` events in `monitor/index.ts`. |
+| MCP Hardening (Req 118–119) | implemented | Added `allowedClientIds` (reading from `X_AGENT_ID`/`MCP_CLIENT_ID` env vars) and `scanRateLimitPerMinute` to `mcp/server.ts` and `rate-limit.ts`. |
+| CI Validation Hook (Req 120) | implemented | Updated `engine/loader.ts` to allow missing YAML files for `documented-only` threat types based on `coverage-status.md`. |
+| Skill Wiring (Req 121) | implemented | Added `security://coverage` instructions to all three SKILL files. |
+
+## v0.14 Additions (Model-Abuse Threat-Type Expansion)
+
+| Item | Status | Notes |
+|---|---|---|
+| Setup Directories and Documentation (Req 104, 108) | implemented | Created 5 new Threat-Type directories, `README.md`s for `deepfake`/`human-trafficking`. Updated `coverage-status.md`, `llm-top-10.md`. |
+| Implement `credential-stuffing-pattern-001` (Req 105) | implemented | Rule and test cases implemented with OWASP/MITRE mappings. |
+| Implement `onion-callback-endpoint-001` (Req 106) | implemented | Rule and test cases implemented with OWASP/MITRE mappings. |
+| Implement `remote-payload-exec-001` (Req 107) | implemented | Rule and test cases implemented with OWASP/MITRE mappings. |
+| Update `CHANGELOG.md` with explicit exclusions (Req 109) | implemented | Added explicit notes on `deepfake` and `human-trafficking`. |
 
 ## Carried-over v0.5/v0.7 items (static engine, languages, detection tiers)
 

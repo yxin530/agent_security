@@ -12,3 +12,5 @@ npx @yxin530/agent-security-engine scan --target <path>
 If the package is not installed, `npx` may fetch it once at install time; the scan itself runs offline. Do not fabricate findings. Report only what the engine emits.
 
 For each finding, include the rule ID, severity, file and line, plain-language risk, vulnerable snippet, corrected snippet, remediation, and OWASP/OWASP LLM/MITRE ATLAS mappings when present. Omit PDPA seksyen references entirely. This skill contains no detection logic and must not add checks beyond engine output.
+
+Before advising on any Threat-Type not present in an engine finding, you MUST read the `security://coverage` MCP resource to determine its Coverage Tier. If the tier is `documented-only`, you MUST apply the `documented-only` disclosure phrase.

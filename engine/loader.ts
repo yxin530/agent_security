@@ -146,13 +146,41 @@ function validateThreatTaxonomy(rulesDir: string, rules: Rule[]): void {
   const statusPath = path.join(path.dirname(rulesDir), 'docs', 'agent-threats', 'coverage-status.md');
   if (!fs.existsSync(statusPath)) throw new LoadError(`Missing threat coverage status: ${statusPath}`);
   const status = fs.readFileSync(statusPath, 'utf8');
+  
+  // 1. Ensure all loaded rules are documented in coverage-status.md
   for (const rule of rules) {
-    const marker = `${path.basename(path.dirname(path.dirname(path.join(rulesDir, rule.id))))}`;
     if (!rule.id || !status.includes(rule.id)) {
       if (rule.category && rulesDir.includes('rules')) {
         const files = walkYamlFiles(rulesDir).filter(file => file.endsWith(`${rule.id}.yaml`));
         if (files.some(file => file.includes(`${path.sep}agent-threats${path.sep}`)) && !status.includes(rule.id)) {
           throw new LoadError(`Threat rule '${rule.id}' is missing from coverage-status.md`);
+        }
+      }
+    }
+  }
+
+  // 2. Ensure all 'detectable' or 'runtime-detectable' threat types have at least one rule loaded
+  const lines = status.split('\n');
+  for (const line of lines) {
+    if (!line.startsWith('|') || line.includes('Threat-Type')) continue;
+    const parts = line.split('|').map(p => p.trim());
+    if (parts.length >= 4) {
+      const threatType = parts[1];
+      const tier = parts[2];
+      if (tier === 'detectable' || tier === 'runtime-detectable') {
+        const hasRule = rules.some(r => line.includes(r.id) || (r.id === 'pii-leakage-in-output' && line.includes('agent-security-monitor')));
+        if (!hasRule && !line.includes('agent-security-monitor') && !line.includes('unrestricted-filesystem-access-001')) {
+           // Skip built-in MCP rules block which don't map to yaml files directly here, or handled by 'includes(r.id)'.
+           // For simplicity, if the table cell contains a rule ID that is loaded, it passes.
+           // If it mentions a yaml file but we didn't load it, it will fail.
+           const hasYamlLink = line.includes('.yaml');
+           if (hasYamlLink) {
+              const ruleLinks = line.match(/\[(.*?)\]/g)?.map(m => m.slice(1, -1)) || [];
+              const found = ruleLinks.some(id => rules.some(r => r.id === id));
+              if (!found) {
+                throw new LoadError(`Threat-Type '${threatType}' is marked ${tier} but its rule is missing or failed validation.`);
+              }
+           }
         }
       }
     }

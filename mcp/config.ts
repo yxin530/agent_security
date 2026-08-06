@@ -11,6 +11,8 @@ export interface McpConfig extends Limits {
   loggingLevel: 'silent' | 'info' | 'debug' | 'audit';
   auditLogPath?: string;
   redactionEnabled: boolean;
+  allowedClientIds?: string[];
+  scanRateLimitPerMinute?: number;
 }
 
 const ALL_TOOLS = ['scan_project', 'list_rules', 'get_rule', 'validate_rules', 'inspect_runtime_event'];
@@ -34,5 +36,7 @@ export function loadConfig(): McpConfig {
     loggingLevel: file.loggingLevel ?? 'info',
     auditLogPath: file.auditLogPath ? path.resolve(file.auditLogPath) : undefined,
     redactionEnabled: file.redactionEnabled ?? true,
+    allowedClientIds: file.allowedClientIds,
+    scanRateLimitPerMinute: file.scanRateLimitPerMinute,
   };
 }

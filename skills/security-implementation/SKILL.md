@@ -18,3 +18,5 @@ Keep Scanner-Verified Findings and Agent-Reasoned Advice in separate sections. F
 When a finding's rule contains `ai_guidance.watch_for`, present those items under a distinct “Related patterns to check manually” heading using the same disclosure phrase. If a related rule also produced a finding, explain the relationship without merging the findings. Do not quote `reasoning_notes` verbatim to the user.
 
 Do not fabricate findings. Report only what the engine emits. This skill contains no detection logic.
+
+Before providing remediation guidance on any Threat-Type where no scanner finding exists, you MUST read the `security://coverage` MCP resource to check the coverage tier.

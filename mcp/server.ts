@@ -15,6 +15,7 @@ import { ruleListText, ruleText } from './resources/rules-resource';
 import { safeError } from './security/redaction';
 import { writeAudit } from './logging/audit-log';
 import { diagnostic } from './logging/diagnostics';
+import { RateLimiter } from './security/rate-limit';
 
 export function createServer(config = loadConfig()): McpServer {
   if (config.rulesPath) {
@@ -24,7 +25,22 @@ export function createServer(config = loadConfig()): McpServer {
     if (missing.length) diagnostic(`${missing.length} built-in MCP rules are not loaded because a custom rulesPath is active`);
   }
   const server = new McpServer({ name: 'agent-security', version: '0.9.0' }, { capabilities: { tools: {}, resources: {} } });
-  const wrap = (name: string, fn: (args: any) => any) => async (args: any) => { const started = Date.now(); try { const response = fn(args); writeAudit(config, { tool: name, input: args, outcome: 'success', durationMs: Date.now() - started }); return response; } catch (error) { writeAudit(config, { tool: name, input: args, outcome: 'error', durationMs: Date.now() - started }); return errorResult(safeError(error)); } };
+  
+  if (config.allowedClientIds && config.allowedClientIds.length > 0) {
+    const clientId = process.env.X_AGENT_ID || process.env.MCP_CLIENT_ID;
+    if (!clientId || !config.allowedClientIds.includes(clientId)) {
+      throw new Error("client not authorized");
+    }
+  }
+
+  const rateLimiter = config.scanRateLimitPerMinute ? new RateLimiter(config.scanRateLimitPerMinute) : null;
+  const currentClientId = process.env.X_AGENT_ID || process.env.MCP_CLIENT_ID || 'anonymous';
+
+  const wrap = (name: string, fn: (args: any) => any) => async (args: any) => { 
+    if (name === 'scan_project' && rateLimiter && !rateLimiter.checkLimit(currentClientId)) {
+      return errorResult('rate limit exceeded');
+    }
+    const started = Date.now(); try { const response = fn(args); writeAudit(config, { tool: name, input: args, outcome: 'success', durationMs: Date.now() - started }); return response; } catch (error) { writeAudit(config, { tool: name, input: args, outcome: 'error', durationMs: Date.now() - started }); return errorResult(safeError(error)); } };
   const enabled = (name: string) => config.enabledTools.includes(name);
   if (enabled('scan_project')) server.registerTool('scan_project', { description: 'Scan an allowed project for security findings.', inputSchema: scanProjectZod }, wrap('scan_project', (args) => scanProject(args, config)));
   if (enabled('inspect_runtime_event')) server.registerTool('inspect_runtime_event', { description: 'Inspect one runtime event for security findings.', inputSchema: runtimeZod }, wrap('inspect_runtime_event', (args) => inspectRuntimeEventTool(args, config)));
