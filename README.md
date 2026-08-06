@@ -22,7 +22,7 @@ npm run test:rules
 
 The package is published to GitHub Packages, not the public npm registry. GitHub authentication with a token having at least `read:packages` is required for private/authenticated installs. The scanner exits with code 0 when no findings are emitted and code 1 when findings are present. Use `--format json` for structured output.
 
-For a clean packed-artifact check before publishing, run `npm run verify:package`. The runtime monitor accepts NDJSON tool-call events through `agent-security-monitor --input <file>` or stdin and currently provides runtime detection for unvalidated agent tool arguments; see [the monitor CLI guide](docs/monitor/cli.md).
+For a clean packed-artifact check before publishing, run `npm run verify:package`. The runtime monitor accepts NDJSON tool-call events through `agent-security-monitor --input <file>` or stdin and currently provides runtime detection for unvalidated agent tool arguments as well as heuristic PII detection on LLM outputs; see [the monitor CLI guide](docs/monitor/cli.md).
 
 ## MCP server
 
@@ -73,4 +73,6 @@ Rules may include structured AI Guidance for related manual review patterns. The
 
 The v0.4 detectable additions include graph-query injection, tool-output injection, indirect and system-prompt injection, indirect tool injection, fine-tuning source verification, LLM error handling, unrestricted code execution, and unthrottled model output. Other taxonomy entries remain explicitly documented-only.
 
-MCP-specific static checks include filesystem and shell access, argument validation, authorization, destructive-action confirmation, excessive permissions, output bounds, SSRF, sensitive resources, unsafe instructions, audit logging, rate limiting, and tool-description prompt injection.
+The v0.15 additions expand coverage to include dependency confusion, missing LLM output validation, missing breach notification, session fixation, insecure auto-updates, and darknet C2 endpoints. Runtime monitoring now flags heuristic PII leaks in LLM output.
+
+MCP-specific static checks include filesystem and shell access, argument validation, authorization, destructive-action confirmation, excessive permissions, output bounds, SSRF, sensitive resources, unsafe instructions, audit logging, rate limiting, and tool-description prompt injection. The MCP server is hardened with client authorization (`X_AGENT_ID`/`MCP_CLIENT_ID`) and scan rate limiting.

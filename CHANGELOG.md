@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.6.9
 
-- Diagnosed and fixed the MCP packaged smoke-test's silent-success behavior by emitting explicit handshake and `list_rules` verification output. A genuinely clean npm install remains environment-dependent when the registry/cache is unavailable.
+- **v0.15 Implementation**:
+  - Added 6 new static security rules: `dependency-confusion-001`, `missing-output-validation-001`, `missing-breach-notification-001`, `session-fixation-001`, `insecure-auto-update-001`, and `i2p-endpoint-001`.
+  - Implemented runtime heuristic PII pattern matching (Malaysian IC, Phone, Email) for `llm-output` events, mapping findings to PDPA Section 9.
+  - Hardened MCP server by implementing per-client token-bucket rate limiting for project scans and enforcing client identity authorization (`X_AGENT_ID` or `MCP_CLIENT_ID`).
+  - Added strict CI taxonomy integrity checks to ensure `detectable` and `runtime-detectable` threats are backed by implemented rules.
+- Diagnosed and fixed the MCP packaged smoke-test's silent-success behavior by emitting explicit handshake and `list_rules` verification output.
 - Evaluated and intentionally excluded `deepfake` and `human-trafficking` Threat-Types from static Rules because they lack source-code signatures (documented-only). Added `stolen-credential`, `darknet-control`, and `trojan` rules.
-  - See architecture-v0.14.md for the complete detectability assessment.
 
 ## 0.6.2
 
