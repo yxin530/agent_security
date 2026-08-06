@@ -36,14 +36,16 @@ remediation: |
 test_cases:
   - type: true_positive
     description: "login handler setting req.session.user with no regenerate call"
-    fixture: |
+    fixture: vulnerable.ts
+    code: |
       function login(req, res) {
         req.session.user = { id: 1 };
         res.send('ok');
       }
   - type: true_negative
     description: "login handler that calls req.session.regenerate() before setting user data"
-    fixture: |
+    fixture: safe.ts
+    code: |
       function login(req, res) {
         req.session.regenerate(() => {
           req.session.user = { id: 1 };

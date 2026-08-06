@@ -1,0 +1,1 @@
+credentials.forEach(cred => { axios.post('/api/login', cred); });

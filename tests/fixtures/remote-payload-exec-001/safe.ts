@@ -1,0 +1,1 @@
+fetch('http://example.com/data.json').then(res => JSON.parse(res.text()));

@@ -22,7 +22,7 @@ detection:
   file_patterns: ["*.js", "*.ts", "*.py"]
   scope: line
   conditions:
-    - pattern: '(?:\.content|\.text|\.choices\[0\]\.message\.content)(?:.*?)(?:query|insertOne|exec|spawn|redirect|send)\('
+    - pattern: '(?:query|insertOne|exec|spawn|redirect|send)\([\s\S]*?(?:\.content|\.text|\.choices\[0\]\.message\.content)'
       flags: "i"
       description: "Detects LLM response field piped into sinks like DB, shell, or HTTP without validation"
 description: |
@@ -33,7 +33,9 @@ remediation: |
 test_cases:
   - type: true_positive
     description: ".content directly into db.query()"
-    fixture: "db.query(response.choices[0].message.content);"
+    fixture: vulnerable.ts
+    code: "db.query(response.choices[0].message.content);"
   - type: true_negative
     description: "passed through z.parse() first"
-    fixture: "db.query(z.parse(response.choices[0].message.content));"
+    fixture: safe.ts
+    code: "db.query(z.parse(response.choices[0].message.content));"

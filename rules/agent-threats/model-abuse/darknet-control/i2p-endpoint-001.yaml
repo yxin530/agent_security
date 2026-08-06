@@ -21,7 +21,7 @@ detection:
   extensions: []
   scope: line
   conditions:
-    - pattern: '(?:\.fetch|\.get|\.post|\.request)\s*\([\'"][^\'"]*?[a-z0-9\-]{1,63}\.i2p'
+    - pattern: '(?:\.fetch|\.get|\.post|\.request)\s*\([''"][^''"]*?[a-z0-9\-]{1,63}\.i2p'
       flags: "i"
       description: "Detects hardcoded .i2p strings in outbound network calls"
 description: |
@@ -31,7 +31,9 @@ remediation: |
 test_cases:
   - type: true_positive
     description: "hardcoded .i2p address in a fetch call"
-    fixture: "fetch('http://example.i2p/api/callback');"
+    fixture: vulnerable.ts
+    code: "fetch('http://example.i2p/api/callback');"
   - type: true_negative
     description: ".i2p string present only in a comment"
-    fixture: "// send to .i2p address\nfetch(url);"
+    fixture: safe.ts
+    code: "// send to .i2p address\nfetch(url);"

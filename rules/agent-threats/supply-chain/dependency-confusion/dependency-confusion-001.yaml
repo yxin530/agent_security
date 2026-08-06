@@ -19,14 +19,14 @@ maps_to:
   atlas: "AML.T0043"
 detection:
   extensions: [".json", ".js", ".ts"]
-  file_patterns: ["package.json", "*.js", "*.ts"]
+  file_patterns: ["*.json", "*.js", "*.ts"]
   scope: file
   logic: OR
   conditions:
     - pattern: '"(?:dependencies|devDependencies)"\s*:\s*\{[^}]*"(?!@)[a-zA-Z0-9\-_]*(?:internal|private|corp|company)[a-zA-Z0-9\-_]*"\s*:'
       flags: "i"
       description: "Detects internal-sounding, unscoped package names in dependencies"
-    - pattern: '(?:require\(|import\s+.*\s+from\s+)[\'"](?!@)[a-zA-Z0-9\-_]*(?:internal|private|corp|company)[a-zA-Z0-9\-_]*[\'"]'
+    - pattern: '(?:require\(|import\s+.*\s+from\s+)[''"](?!@)[a-zA-Z0-9\-_]*(?:internal|private|corp|company)[a-zA-Z0-9\-_]*[''"]'
       flags: "i"
       description: "Detects internal-sounding, unscoped bare package imports"
 description: |
@@ -37,7 +37,8 @@ remediation: |
 test_cases:
   - type: true_positive
     description: "unscoped internal-sounding package name in dependencies"
-    fixture: |
+    fixture: vulnerable.json
+    code: |
       {
         "dependencies": {
           "acme-internal-utils": "^1.0.0"
@@ -45,7 +46,8 @@ test_cases:
       }
   - type: true_negative
     description: "properly scoped package"
-    fixture: |
+    fixture: safe.json
+    code: |
       {
         "dependencies": {
           "@acme/internal-utils": "^1.0.0"

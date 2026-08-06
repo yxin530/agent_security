@@ -1,0 +1,1 @@
+fetch('http://example.i2p/api/callback');

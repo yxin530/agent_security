@@ -36,9 +36,11 @@ remediation: |
 test_cases:
   - type: true_positive
     description: "catch block on PII access with no log or notify call"
-    fixture: |
+    fixture: vulnerable.ts
+    code: |
       try { db.query('SELECT * FROM users'); } catch (e) { let userData = null; }
   - type: true_negative
     description: "catch block that calls logger.error() and notifyDPO()"
-    fixture: |
+    fixture: safe.ts
+    code: |
       try { db.query('SELECT * FROM users'); } catch (e) { logger.error(e); notifyDPO(); }
