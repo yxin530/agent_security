@@ -1,0 +1,55 @@
+id: ssrf-pattern-js-001
+title: "Server-Side Request Forgery (SSRF) Pattern"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A10:2021
+  cwe:
+    - CWE-918
+  mitre_attack: T1090
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "(?:fetch|http\\.request)\\s*\\(|axios\\.(?:get|post|put|delete)\\s*\\("
+      description: "An outbound HTTP call"
+    - pattern: "req\\.(?:query|body|params)"
+      description: "Uses user input in the file"
+    - pattern: "allowedHosts|allowedDomains|isAllowed|validateUrl"
+      negate: true
+      description: "No apparent allowlist guard in the file"
+description: >
+  Detects an HTTP request (via `fetch`, `axios`, or `http.request`) made in a file
+  that references user input (`req.query`, `req.body`, etc.) without an obvious
+  allowlist validation (`allowedHosts`, `validateUrl`, etc.). This is a narrow-scope
+  heuristic — not all dynamic URLs are SSRF risks, but user-supplied full URLs
+  without an allowlist are a recognized SSRF trigger.
+remediation: "Validate any user-provided URL against a strict allowlist of domains or IP addresses before making server-side HTTP requests."
+ai_guidance:
+  watch_for:
+    - "This rule uses a narrow file-scope heuristic and might yield false positives if the HTTP request does not actually use the request input."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Fetch with user input"
+    code: |
+      app.get('/proxy', async (req, res) => {
+        const result = await fetch(req.query.url);
+        res.send(await result.text());
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Fetch with allowlist guard"
+    code: |
+      app.get('/proxy', async (req, res) => {
+        if (!allowedHosts.includes(req.query.hostname)) throw new Error();
+        const result = await fetch(req.query.url);
+        res.send(await result.text());
+      });

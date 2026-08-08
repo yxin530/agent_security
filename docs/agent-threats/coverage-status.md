@@ -35,5 +35,10 @@ Coverage tiers describe what is shipped: `detectable` has a tested static rule; 
 | model-abuse/pii-leakage-in-output | runtime-detectable | `agent-security-monitor` |
 | model-abuse/deepfake | documented-only | — |
 | model-abuse/human-trafficking | documented-only | — |
+| appsec/access-control | detectable | [broken-object-level-authz-001](../../rules/appsec/access-control/broken-object-level-authz-001.yaml) |
+| appsec/cryptography | detectable | [weak-cipher-001](../../rules/appsec/cryptography/weak-cipher-001.yaml), [insecure-random-001](../../rules/appsec/cryptography/insecure-random-001.yaml) |
+| appsec/xss | detectable | [xss-reflected-js-001](../../rules/appsec/xss/xss-reflected-js-001.yaml), [xss-innerHTML-001](../../rules/appsec/xss/xss-innerHTML-001.yaml) |
+| appsec/vulnerable-components | documented-only | Requires CVE advisory feed and manifest parsing — beyond scope of offline regex engine. Use `npm audit` in CI. |
+| appsec/ssrf | detectable | [ssrf-pattern-js-001](../../rules/appsec/ssrf/ssrf-pattern-js-001.yaml) |
 
 The two `jailbreak` threat-types are intentionally distinct: agent-manipulation/jailbreak concerns agent decision/tool-use manipulation, while prompt-injection/jailbreak concerns jailbreak delivered through prompt injection.

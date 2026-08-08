@@ -1,0 +1,42 @@
+id: insecure-random-001
+title: "Insecure Randomness for Security Tokens"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A02:2021
+  cwe:
+    - CWE-338
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: "(?=.*(?:token|session|secret|nonce|salt|csrf|key))(?=.*Math\\.random\\(\\))"
+      flags: "i"
+      description: "Math.random() used to generate a security-sensitive value"
+description: >
+  Detects the use of `Math.random()` to generate values for variables whose names
+  suggest they are security-sensitive (e.g., token, session, secret, nonce, salt,
+  csrf, key). `Math.random()` is not a cryptographically secure pseudo-random number
+  generator (CSPRNG) and its outputs can be predicted, making it completely
+  unsuitable for security purposes.
+remediation: "Use crypto.randomBytes() in Node.js or window.crypto.getRandomValues() in the browser instead of Math.random() for any security-sensitive values."
+ai_guidance:
+  watch_for: []
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Math.random() assigned to sessionToken"
+    code: |
+      const sessionToken = Math.random().toString(36);
+  - type: true_negative
+    fixture: "tn.js"
+    description: "crypto.randomBytes() assigned to sessionToken"
+    code: |
+      const sessionToken = crypto.randomBytes(32).toString('hex');

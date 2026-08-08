@@ -56,6 +56,14 @@
         "atlas": {
           "type": "string",
           "pattern": "^AML\\.T\\d{4}$"
+        },
+        "cwe": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^CWE-\\d+$" }
+        },
+        "mitre_attack": {
+          "type": "string",
+          "pattern": "^T\\d{4}(\\.\\d{3})?$"
         }
       }
     },

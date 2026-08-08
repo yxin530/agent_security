@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0
+
+- **v0.16 Implementation (OWASP Web Top 10 Completeness)**:
+  - Added new schema fields `cwe` and `mitre_attack`.
+  - Added A01 Broken Access Control rule: `broken-object-level-authz-001`.
+  - Added A02 Cryptographic Failures rules: `weak-cipher-001` and `insecure-random-001`.
+  - Added A03 Injection (XSS) rules: `xss-reflected-js-001` and `xss-innerHTML-001`.
+  - Added A10 SSRF rule: `ssrf-pattern-js-001`.
+  - Documented A06 Vulnerable and Outdated Components as `documented-only`.
+
 ## 0.6.9
 
 - **v0.15 Implementation**:

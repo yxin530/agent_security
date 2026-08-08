@@ -1,0 +1,42 @@
+id: xss-innerHTML-001
+title: "DOM-based XSS via innerHTML/document.write"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+  cwe:
+    - CWE-79
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.html"]
+  extensions: [".js", ".ts", ".html"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: "\\.innerHTML\\s*=\\s*(?!['\"`]|DOMPurify|sanitizeHtml)"
+      description: "innerHTML assigned to a non-literal value without obvious sanitization"
+    - pattern: "document\\.write\\s*\\((?!['\"`]|DOMPurify|sanitizeHtml)"
+      description: "document.write called with a non-literal value without obvious sanitization"
+description: >
+  Detects DOM-based XSS patterns where `.innerHTML` or `document.write` are
+  assigned a non-literal (variable) value without an inline call to a known
+  sanitizer like `DOMPurify` or `sanitizeHtml`.
+remediation: "Use .textContent or .innerText instead of .innerHTML if the content is plain text. If HTML is required, sanitize the input using DOMPurify before assignment."
+ai_guidance:
+  watch_for:
+    - "Libraries that assign sanitized HTML to innerHTML after calling DOMPurify or sanitizeHtml."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Unsanitized variable assigned to innerHTML"
+    code: |
+      el.innerHTML = userInput;
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Variable sanitized with DOMPurify"
+    code: |
+      el.innerHTML = DOMPurify.sanitize(userInput);

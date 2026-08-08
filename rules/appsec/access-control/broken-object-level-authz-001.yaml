@@ -1,0 +1,57 @@
+id: broken-object-level-authz-001
+title: "Missing Ownership Check (BOLA/IDOR)"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A01:2021
+  cwe:
+    - CWE-284
+    - CWE-639
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "req\\.(?:params|query)\\.\\w+"
+      description: "Extracts a parameter from request (params or query)"
+    - pattern: "\\.(?:findById|findOne|find|update|destroy|query|destroy)\\s*\\("
+      description: "Performs a database query or model lookup"
+    - pattern: "req\\.user\\.id|userId|ownerId"
+      negate: true
+      description: "No ownership check found in the same file"
+description: >
+  Detects an Express/Fastify/Koa route handler that extracts a resource ID from
+  the request and passes it directly to a database query without an apparent
+  ownership check (`req.user.id`, `userId`, `ownerId`). This can lead to
+  Broken Object Level Authorization (BOLA/IDOR). Matches require human review to
+  confirm whether the resource actually requires authorization — public-content
+  routes are a known false-positive source.
+remediation: "Ensure that any resource lookup also verifies that the authenticated user owns or has permission to access the requested resource."
+ai_guidance:
+  watch_for:
+    - "Public-content routes that do not require ownership checks are a known false-positive source."
+    - "Matches require human review to confirm whether the resource actually requires authorization."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Route querying db without userId check"
+    code: |
+      app.get('/items/:id', async (req, res) => {
+        const item = await db.find({ id: req.params.id });
+        res.json(item);
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Route querying db with explicit userId guard"
+    code: |
+      app.get('/items/:id', async (req, res) => {
+        const item = await db.find({ id: req.params.id });
+        if (item.userId !== req.user.id) throw new ForbiddenError();
+        res.json(item);
+      });

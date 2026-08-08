@@ -6,9 +6,20 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
-Last updated: reflects v0.15 (Supply-Chain, Output Validation, MCP Hardening, Skill Wiring).
+Last updated: reflects v0.16 (OWASP Web Top 10 Completeness + Schema Improvements).
 
 ---
+
+## v0.16 Additions (OWASP Web Top 10 Completeness)
+
+| Item | Status | Notes |
+|---|---|---|
+| Schema Improvements (Req 130) | implemented | Added `cwe` and `mitre_attack` fields to `rules/schema.json`. |
+| `broken-object-level-authz-001` (Req 122) | implemented | Rule and tests created. |
+| Cryptography Rules (Req 123-124) | implemented | Created `weak-cipher-001` and `insecure-random-001`. |
+| XSS Rules (Req 125-126) | implemented | Created `xss-reflected-js-001` and `xss-innerHTML-001`. |
+| SSRF Rule (Req 127) | implemented | Created `ssrf-pattern-js-001`. |
+| Documentation Updates (Req 128-129) | implemented | Updated `docs/owasp/web-top-10.md` and `docs/agent-threats/coverage-status.md`. |
 
 ## v0.15 Additions (Supply-Chain, Output Validation, MCP Hardening & Skill Wiring)
 

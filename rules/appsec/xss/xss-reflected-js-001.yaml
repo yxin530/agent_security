@@ -1,0 +1,52 @@
+id: xss-reflected-js-001
+title: "Reflected Cross-Site Scripting (XSS) in JS"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+  cwe:
+    - CWE-79
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "(?:res|response)\\.(?:send|write|json|end)\\s*\\("
+      description: "Response write call"
+    - pattern: "req\\.(?:query|body|params)\\.\\w+"
+      description: "Uses request input parameter"
+    - pattern: "encode|escape|sanitize|DOMPurify|validator\\.escape"
+      negate: true
+      description: "No sanitization or encoding function used in the file"
+description: >
+  Detects reflected XSS patterns where user-controlled request parameters
+  (`req.query`, `req.body`, `req.params`) are written directly to an HTTP
+  response (`res.send`, `res.write`, etc.) without an apparent sanitization
+  or encoding call. Note that template engines with auto-escaping (e.g., 
+  Handlebars, or EJS using `<%= %>`) are a known source of false positives
+  for this rule. Matches should be manually verified.
+remediation: "Always sanitize or HTML-encode user input before rendering it in an HTTP response. Use libraries like DOMPurify or validator.escape()."
+ai_guidance:
+  watch_for:
+    - "Template engines with auto-escaping (e.g., Handlebars, EJS with <%= %>) are a known false positive source."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Reflected XSS via res.send"
+    code: |
+      app.get('/hello', (req, res) => {
+        res.send(req.query.name);
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Sanitized input via validator.escape"
+    code: |
+      app.get('/hello', (req, res) => {
+        res.send(validator.escape(req.query.name));
+      });

@@ -1,0 +1,54 @@
+id: weak-cipher-001
+title: "Use of Weak/Deprecated Cipher or Hash"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A02:2021
+  cwe:
+    - CWE-327
+    - CWE-328
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.java"]
+  extensions: [".js", ".ts", ".java"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: "createCipher\\(['\"](?:des|rc4|des-ede|bf-cbc)"
+      description: "Use of deprecated Node.js symmetric cipher modes"
+    - pattern: "(?=.*(?:password|passwd|pwd|secret))(?=.*(?:md5|sha1)\\s*\\()"
+      flags: "i"
+      description: "Use of MD5/SHA1 hash for a password or secret"
+description: >
+  Detects the use of deprecated symmetric ciphers (e.g., DES, RC4) or the use
+  of weak hashing algorithms (MD5, SHA1) in the context of passwords or secrets.
+  Note that MD5 and SHA1 are acceptable for non-security checksums, but they
+  must not be used for password hashing or cryptographic signatures.
+remediation: "Use crypto.createCipheriv() with AES-GCM for symmetric encryption, and bcrypt/argon2 for password hashing. Avoid MD5, SHA1, DES, and RC4."
+ai_guidance:
+  watch_for: []
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp-des.js"
+    description: "Use of DES cipher"
+    code: |
+      const cipher = crypto.createCipher('des', key);
+  - type: true_positive
+    fixture: "tp-md5.js"
+    description: "Use of MD5 for password"
+    code: |
+      const hash = md5(password);
+  - type: true_negative
+    fixture: "tn-aes.js"
+    description: "Use of AES-256-GCM"
+    code: |
+      const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  - type: true_negative
+    fixture: "tn-bcrypt.js"
+    description: "Use of bcrypt for password"
+    code: |
+      const hash = await bcrypt.hash(password, 10);
