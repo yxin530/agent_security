@@ -39,6 +39,16 @@ The package also provides `agent-security-mcp`, an stdio MCP server exposing pro
 | `pii-pattern-001` | high | A09:2021 | — |
 | `pii-in-logs-js-001`, `pii-in-logs-py-001`, `pii-in-logs-php-001`, `pii-in-logs-go-001` | high | A09:2021 | — |
 | `missing-breach-log-js-001` | medium | A09:2021 | Section 12B |
+| `broken-object-level-authz-001` | high | A01:2021 | — |
+| `weak-cipher-001`, `insecure-random-001` | high | A02:2021 | — |
+| `xss-reflected-js-001`, `xss-innerHTML-001` | high | A03:2021 | — |
+| `ssrf-pattern-js-001` | high | A10:2021 | — |
+| `missing-consent-collection-001` | medium | A05:2021 | Section 6 |
+| `missing-privacy-notice-001` | medium | A05:2021 | Section 7 |
+| `unrestricted-pii-api-001` | medium | A01:2021 | Section 8 |
+| `missing-data-ttl-001` | medium | A05:2021 | Section 11 |
+| `missing-dsar-endpoint-001` | medium | A05:2021 | Section 12A |
+| `pii-sent-to-third-party-001` | medium | A08:2021 | Section 21 |
 
 Agent-threat rules use OWASP LLM and MITRE ATLAS mappings:
 
@@ -47,14 +57,14 @@ Agent-threat rules use OWASP LLM and MITRE ATLAS mappings:
 | Agent manipulation | `unvalidated-tool-args-001` |
 | Data poisoning | `unsanitized-rag-write-001` |
 | Prompt injection | `unescaped-prompt-concat-001` |
-| Model security | `hardcoded-llm-key-001`, `permissive-mcp-grant-001` |
+| Model security | `hardcoded-llm-key-001`, `permissive-mcp-grant-001`, `missing-output-sanitisation-001`, `system-prompt-leakage-001` |
 | Model abuse | `no-llm-rate-limit-001`, `unvalidated-agent-write-001` |
 
 ## Coverage
 
 | Language | Shipped language-specific coverage | Planned |
 |---|---|---|
-| JavaScript/TypeScript | SQL injection, CORS, rate limiting, PII logs, breach-log heuristic | — |
+| JavaScript/TypeScript | SQL injection, CORS, rate limiting, PII logs, breach-log heuristic, access control, crypto, XSS, SSRF, PDPA heuristics | — |
 | PHP/Laravel | SQL injection, CORS, rate limiting, PII logs | — |
 | Go | SQL injection, CORS, rate limiting, PII logs | — |
 | Python | PII log-call variant; SQL injection remains v0.1-supported | — |
@@ -76,3 +86,5 @@ The v0.4 detectable additions include graph-query injection, tool-output injecti
 The v0.15 additions expand coverage to include dependency confusion, missing LLM output validation, missing breach notification, session fixation, insecure auto-updates, and darknet C2 endpoints. Runtime monitoring now flags heuristic PII leaks in LLM output.
 
 MCP-specific static checks include filesystem and shell access, argument validation, authorization, destructive-action confirmation, excessive permissions, output bounds, SSRF, sensitive resources, unsafe instructions, audit logging, rate limiting, and tool-description prompt injection. The MCP server is hardened with client authorization (`X_AGENT_ID`/`MCP_CLIENT_ID`) and scan rate limiting.
+
+The v0.16, v0.17, and v0.18 additions expand coverage to include OWASP Web Top 10 completeness (access control, cryptography, XSS, SSRF), OWASP LLM completeness (output sanitization, system prompt leakage), and PDPA heuristic compliance checks.
