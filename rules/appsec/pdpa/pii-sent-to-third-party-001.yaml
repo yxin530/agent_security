@@ -1,0 +1,43 @@
+id: pii-sent-to-third-party-001
+title: "PII Sent to Third-Party Processor"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A08:2021
+  pdpa: "Section 21, Personal Data Protection Act 2010 (as amended)"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "fetch\\(|axios\\.(?:get|post|put|delete)\\("
+      description: "Outbound HTTP call"
+    - pattern: "ic_?number|nric|passport|full_?name|date_?of_?birth|phone_?number"
+      flags: "i"
+      description: "PII field name present in file"
+description: >
+  Detects HTTP calls to external domains with PII field names present nearby. This
+  flags unvetted third-party data processor sharing (Section 21) for review.
+  Sharing PII with third parties is lawful under PDPA when a Data Processing
+  Agreement exists; this rule flags the pattern for review, not as a confirmed violation.
+remediation: "Verify that all third-party endpoints receiving PII are covered by a valid Data Processing Agreement."
+ai_guidance:
+  watch_for:
+    - "Payment processors, verified KYC providers, and government-integration APIs legitimately receive PII under a lawful agreement."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Axios post with PII payload"
+    code: |
+      await axios.post('https://thirdparty.com/api', { nric: user.nric });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Axios post without PII payload"
+    code: |
+      await axios.post(internalServiceUrl, { userId: user.id });

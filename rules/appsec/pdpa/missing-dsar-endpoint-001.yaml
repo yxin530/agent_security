@@ -1,0 +1,50 @@
+id: missing-dsar-endpoint-001
+title: "Missing DSAR Endpoint in User Routes"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+  pdpa: "Section 12A, Personal Data Protection (Amendment) Act 2024"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "User\\.findOne|User\\.findById|User\\.update|from\\s+users"
+      description: "Reference to User model or table"
+    - pattern: "data.?request|dsar|subject.?access|data.?export|right.?to.?access"
+      flags: "i"
+      negate: true
+      description: "No DSAR endpoint in the file"
+description: >
+  Detects files handling User models that lack a Data Subject Access Request
+  (DSAR) route. This flags the 2024 Amendment's right-of-access obligation
+  (Section 12A). Note that DSAR endpoints often reside in a separate router
+  file, so this heuristic may produce false negatives for split-file architectures.
+remediation: "Ensure your application provides an endpoint or mechanism for users to request and export their personal data."
+ai_guidance:
+  watch_for:
+    - "DSAR endpoints in separate files will trigger a false positive on the file containing the user model."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "User router without DSAR route"
+    code: |
+      router.get('/profile', async (req, res) => {
+        const u = await User.findById(req.user.id);
+        res.json(u);
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "User router with DSAR route"
+    code: |
+      router.get('/dsar', async (req, res) => {
+        const data = await User.findById(req.user.id);
+        res.json(data);
+      });

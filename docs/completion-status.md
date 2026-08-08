@@ -6,9 +6,17 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
-Last updated: reflects v0.17 (OWASP LLM Updates).
+Last updated: reflects v0.18 (PDPA Completeness).
 
 ---
+
+## v0.18 Additions (PDPA Completeness)
+
+| Item | Status | Notes |
+|---|---|---|
+| New PDPA Rules (Req 135-140) | implemented | Created 6 heuristic compliance rules. |
+| Docs Update (Req 141) | implemented | Updated `pdpa-2024-mapping.md` with new rules. |
+| Strict overclaiming avoidance (Req 142) | implemented | Severity capped at `medium` for heuristic rules. |
 
 ## v0.17 Additions (OWASP LLM Updates)
 

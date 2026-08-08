@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0
+
+- **v0.18 Implementation (PDPA Completeness)**:
+  - Added 6 new heuristic compliance rules mapping to PDPA 2010 (and 2024 Amendment) sections: `missing-consent-collection-001`, `missing-privacy-notice-001`, `unrestricted-pii-api-001`, `missing-data-ttl-001`, `missing-dsar-endpoint-001`, and `pii-sent-to-third-party-001`.
+  - Capped severity of all PDPA rules to `medium` because heuristic compliance checks carry higher false-positive risk than syntactic vulnerability checks.
+  - Updated `pdpa-2024-mapping.md` with new mappings.
+
 ## 0.7.1
 
 - **v0.17 Implementation (OWASP LLM Updates)**:

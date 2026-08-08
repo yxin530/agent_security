@@ -1,0 +1,51 @@
+id: missing-privacy-notice-001
+title: "Missing Privacy Notice in Registration Route"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+  pdpa: "Section 7, Personal Data Protection Act 2010 (as amended)"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "register|signup|sign.?up|create.?account"
+      flags: "i"
+      description: "Registration route handler"
+    - pattern: "privacy|pdpa|data.?protection"
+      flags: "i"
+      negate: true
+      description: "No reference to privacy notice"
+description: >
+  Detects registration route handlers that do not reference a privacy notice URL
+  or variable. This flags the PDPA Notice and Choice Principle (Section 7). The
+  privacy notice may be rendered on the frontend instead of the handler; this is
+  a server-side heuristic.
+remediation: "Provide a clear privacy notice during registration that details data collection and usage."
+ai_guidance:
+  watch_for:
+    - "Privacy notices often reside entirely on the frontend UI without server-side references."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Registration route without privacy string"
+    code: |
+      router.post('/register', (req, res) => {
+        User.create(req.body);
+        res.send('OK');
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Registration route with privacy string"
+    code: |
+      router.post('/register', (req, res) => {
+        User.create(req.body);
+        res.json({ privacyPolicyUrl: '/privacy' });
+      });

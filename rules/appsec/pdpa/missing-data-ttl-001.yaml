@@ -1,0 +1,50 @@
+id: missing-data-ttl-001
+title: "Missing Data Retention/TTL on PII Model"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+  pdpa: "Section 11, Personal Data Protection Act 2010 (as amended)"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "sequelize\\.define|@Entity\\(\\)|mongoose\\.Schema|new Schema\\("
+      description: "ORM model definition"
+    - pattern: "ic_?number|nric|passport|full_?name|date_?of_?birth"
+      flags: "i"
+      description: "PII fields present"
+    - pattern: "deleted_?at|expires_?at|ttl|purge|retention|beforeDestroy|paranoid|softDelete"
+      flags: "i"
+      negate: true
+      description: "No retention or soft-delete mechanism found"
+description: >
+  Detects ORM model definitions storing PII without a retention, TTL, or
+  soft-delete mechanism. This flags the PDPA Retention Principle (Section 11).
+remediation: "Implement data retention policies (e.g., TTL for temporary data, or soft-delete timestamps) for PII records."
+ai_guidance:
+  watch_for:
+    - "Retention policies enforced at the database level (e.g., Redis TTL or SQL scheduled jobs) will not be visible in the ORM schema."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Sequelize model with nric and no paranoid"
+    code: |
+      const User = sequelize.define('User', {
+        nric: DataTypes.STRING
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Sequelize model with nric and paranoid"
+    code: |
+      const User = sequelize.define('User', {
+        nric: DataTypes.STRING,
+        deletedAt: DataTypes.DATE
+      }, { paranoid: true });

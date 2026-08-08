@@ -1,0 +1,54 @@
+id: missing-consent-collection-001
+title: "Missing Consent Collection in Form/Model"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+  pdpa: "Section 6, Personal Data Protection Act 2010 (as amended)"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+  extensions: [".js", ".ts", ".jsx", ".tsx"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "ic_?number|nric|passport|full_?name|date_?of_?birth|phone|email|address"
+      flags: "i"
+      description: "PII field name present"
+    - pattern: "consent|agreed|accepted|privacyAccepted|termsAccepted"
+      flags: "i"
+      negate: true
+      description: "No consent field present"
+description: >
+  Detects a model or form containing PII fields without a corresponding consent
+  field in the same file. This flags the PDPA General Principle (Section 6) for
+  review. Note that consent may be collected elsewhere in the flow (e.g., a
+  separate step form), so this is a heuristic.
+remediation: "Ensure explicit consent is collected when capturing PII. Add a required consent boolean to your models/forms."
+ai_guidance:
+  watch_for:
+    - "Multi-step forms, separate consent pages, and explicit opt-in API endpoints are legitimate patterns that would reduce this to a false positive."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "Model with PII but no consent"
+    code: |
+      const schema = new Schema({
+        nric: String,
+        email: String,
+        phone: String
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Model with PII and consentGiven"
+    code: |
+      const schema = new Schema({
+        nric: String,
+        email: String,
+        phone: String,
+        consentGiven: { type: Boolean, required: true }
+      });

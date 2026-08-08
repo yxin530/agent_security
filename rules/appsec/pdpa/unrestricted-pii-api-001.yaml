@@ -1,0 +1,51 @@
+id: unrestricted-pii-api-001
+title: "Unrestricted PII API Endpoint"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A01:2021
+  pdpa: "Section 8, Personal Data Protection Act 2010 (as amended)"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "ic_?number|nric|passport|full_?name|date_?of_?birth"
+      flags: "i"
+      description: "PII field in response or query"
+    - pattern: "req\\.user\\.role|hasPermission|checkScope|isAdmin|authorize|requireAuth|req\\.user\\.id"
+      negate: true
+      description: "No authorization guard"
+description: >
+  Detects API handlers that return PII fields without an apparent authorization
+  guard in the same file. This flags the PDPA Disclosure Principle (Section 8).
+  Some PII endpoints are legitimately public or verified elsewhere; this requires
+  review of the route's intended audience.
+remediation: "Ensure endpoints returning PII enforce proper authorization (e.g., verifying the requesting user owns the data or has administrative rights)."
+ai_guidance:
+  watch_for:
+    - "Authorization middleware applied globally or in a router file may prevent a false positive here."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "PII endpoint without auth guard"
+    code: |
+      router.get('/users/:id', async (req, res) => {
+        const u = await User.findById(req.params.id);
+        res.json({ nric: u.nric });
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "PII endpoint with auth guard"
+    code: |
+      router.get('/users/:id', async (req, res) => {
+        if (req.user.id !== req.params.id) throw new ForbiddenError();
+        const u = await User.findById(req.params.id);
+        res.json({ nric: u.nric });
+      });
