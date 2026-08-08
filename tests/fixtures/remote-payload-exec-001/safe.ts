@@ -1,1 +1,1 @@
-fetch('http://example.com/data.json').then(res => JSON.parse(res.text()));
+fetch('http://safe.com/script.js').then(res => writeFileSync('script.js', res.text())); verifySignature('script.js');

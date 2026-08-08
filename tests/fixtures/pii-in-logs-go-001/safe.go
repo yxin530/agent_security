@@ -1,2 +1,1 @@
-package main
-func f() { log.Println(requestID) }
+log.Println(requestID)

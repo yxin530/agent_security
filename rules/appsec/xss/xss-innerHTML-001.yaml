@@ -15,9 +15,9 @@ detection:
   scope: line
   logic: OR
   conditions:
-    - pattern: "\\.innerHTML\\s*=\\s*(?!['\"`]|DOMPurify|sanitizeHtml)"
+    - pattern: "\\.innerHTML\\s*=(?!\\s*(?:['\"`]|DOMPurify|sanitizeHtml))"
       description: "innerHTML assigned to a non-literal value without obvious sanitization"
-    - pattern: "document\\.write\\s*\\((?!['\"`]|DOMPurify|sanitizeHtml)"
+    - pattern: "document\\.write\\s*\\((?!\\s*(?:['\"`]|DOMPurify|sanitizeHtml))"
       description: "document.write called with a non-literal value without obvious sanitization"
 description: >
   Detects DOM-based XSS patterns where `.innerHTML` or `document.write` are

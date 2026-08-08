@@ -1,2 +1,1 @@
-package main
-func routes() { http.HandleFunc("/login", loginHandler) }
+http.HandleFunc('/login', loginHandler)

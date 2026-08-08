@@ -1,1 +1,1 @@
-<?php error_log('user@example.com');
+error_log('user@example.com');

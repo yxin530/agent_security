@@ -56,7 +56,7 @@ export function inspectRuntimeEvent(rulesDir: string, event: RuntimeEvent, ruleI
           column: 1,
           message: `Detected PII patterns in LLM output: ${matchedTypes.join(', ')} (PDPA Section 9 data-integrity principle)`,
           remediation: 'Ensure LLM output is scrubbed of PII before being exposed or stored.',
-          mapsTo: { owasp: ['A02:2021'], owasp_llm: 'LLM02:2025', pdpa: 'Section 9' },
+          mapsTo: { owasp: ['A02:2021'], owasp_llm: ['LLM02:2025'], pdpa: 'Section 9' },
           detectionTier: 'regex',
           source: 'runtime'
         });

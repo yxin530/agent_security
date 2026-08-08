@@ -20,7 +20,8 @@ detection:
     - pattern: "system_?prompt|SYSTEM_PROMPT|systemMessage|systemRole"
       flags: "i"
       description: "Reads a system prompt variable"
-    - pattern: "res\\.(?:send|json|end)\\(|return\\s+.*system[Pp]rompt|response\\.body\\s*="
+    - pattern: "(?:res\\.(?:send|json|end)\\(|return\\s+|response\\.body\\s*=)[^;]*(?:system_?prompt|SYSTEM_PROMPT|systemMessage|systemRole)"
+      flags: "i"
       description: "System prompt used in a response body"
 description: >
   Detects when a variable whose name indicates it holds a system prompt is used

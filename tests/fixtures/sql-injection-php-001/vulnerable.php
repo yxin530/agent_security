@@ -1,1 +1,1 @@
-<?php $q = "SELECT * FROM users WHERE id = " . $userId;
+$q = "SELECT * FROM users WHERE id = " . $userId;

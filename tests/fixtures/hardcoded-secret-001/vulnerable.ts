@@ -1,2 +1,1 @@
 const apiKey = "FAKEsk_live_ABCDEF1234567890fake";
-export { apiKey };

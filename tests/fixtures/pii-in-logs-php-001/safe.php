@@ -1,1 +1,1 @@
-<?php error_log($requestId);
+error_log($requestId);
