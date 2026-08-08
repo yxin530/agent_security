@@ -4,7 +4,7 @@ severity: high
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+maps_to: { owasp: ["A05:2021"], owasp_llm: ["LLM06:2025"], atlas: "AML.T0048" }
 detection:
   extensions: [".ts", ".js"]
   scope: line

@@ -50,8 +50,11 @@
           "pattern": "^Section\\s+\\d+"
         },
         "owasp_llm": {
-          "type": "string",
-          "pattern": "^LLM\\d{2}:20\\d{2}$"
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^LLM\\d{2}:20\\d{2}$"
+          }
         },
         "atlas": {
           "type": "string",

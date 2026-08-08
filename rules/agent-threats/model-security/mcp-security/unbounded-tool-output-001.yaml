@@ -4,7 +4,7 @@ severity: medium
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A04:2021"], owasp_llm: "LLM10:2025", atlas: "AML.T0048" }
+maps_to: { owasp: ["A04:2021"], owasp_llm: ["LLM10:2025"], atlas: "AML.T0048" }
 detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "return.*(readFile|JSON\\.stringify|result)", flags: "i" }, { pattern: "slice|limit|maxBytes|truncate", flags: "i", negate: true }] }
 description: "Detects tool output returned without an apparent size bound."
 remediation: "Enforce byte and item limits before returning tool output."

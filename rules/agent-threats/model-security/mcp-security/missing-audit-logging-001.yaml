@@ -4,7 +4,7 @@ severity: medium
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A09:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+maps_to: { owasp: ["A09:2021"], owasp_llm: ["LLM06:2025"], atlas: "AML.T0048" }
 detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "registerTool|tool\\(", flags: "i" }, { pattern: "audit|logger|logToolCall|appendFile", flags: "i", negate: true }] }
 description: "Detects tool registration without visible audit logging."
 remediation: "Record structured, redacted tool invocation outcomes locally."

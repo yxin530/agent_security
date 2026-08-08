@@ -4,7 +4,7 @@ severity: high
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+maps_to: { owasp: ["A05:2021"], owasp_llm: ["LLM06:2025"], atlas: "AML.T0048" }
 detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "(delete|remove|drop|destroy|rm)\\(", flags: "i" }, { pattern: "confirm|approval|dryRun", flags: "i", negate: true }] }
 description: "Detects destructive tool behavior without a confirmation or approval gate."
 remediation: "Require explicit confirmation or a safe dry-run before destructive actions."

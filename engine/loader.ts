@@ -29,7 +29,7 @@ export interface Detection {
 export interface MapsTo {
   owasp: string[];
   pdpa?: string;
-  owasp_llm?: string;
+  owasp_llm?: string[];
   atlas?: string;
 }
 
@@ -123,10 +123,10 @@ function validateAliases(rulesDir: string, rules: Rule[]): void {
 
 function validateFrameworkDocs(rulesDir: string, rules: Rule[]): void {
   const docsRoot = path.join(path.dirname(rulesDir), 'docs');
-  const checks: Array<[string, string, (rule: Rule) => string | undefined]> = [
-    [path.join(docsRoot, 'owasp', 'web-top-10.md'), 'maps_to.owasp', rule => rule.maps_to.owasp.join(' ')],
+  const checks: Array<[string, string, (rule: Rule) => string[] | undefined]> = [
+    [path.join(docsRoot, 'owasp', 'web-top-10.md'), 'maps_to.owasp', rule => rule.maps_to.owasp],
     [path.join(docsRoot, 'owasp', 'llm-top-10.md'), 'maps_to.owasp_llm', rule => rule.maps_to.owasp_llm],
-    [path.join(docsRoot, 'frameworks', 'mitre-atlas.md'), 'maps_to.atlas', rule => rule.maps_to.atlas],
+    [path.join(docsRoot, 'frameworks', 'mitre-atlas.md'), 'maps_to.atlas', rule => rule.maps_to.atlas ? [rule.maps_to.atlas] : undefined],
   ];
   const failures: string[] = [];
   for (const [docPath, field, getValues] of checks) {
@@ -135,8 +135,7 @@ function validateFrameworkDocs(rulesDir: string, rules: Rule[]): void {
     for (const rule of rules) {
       const values = getValues(rule);
       if (!values) continue;
-      const individual = field === 'maps_to.owasp' ? rule.maps_to.owasp : [values];
-      for (const value of individual) if (!text.includes(value)) failures.push(`${rule.id}: ${field} '${value}' missing from ${docPath}`);
+      for (const value of values) if (!text.includes(value)) failures.push(`${rule.id}: ${field} '${value}' missing from ${docPath}`);
     }
   }
   if (failures.length) throw new LoadError(`Framework documentation validation failed:\n${failures.join('\n')}`);
@@ -216,6 +215,15 @@ function processFile(
   } catch (e: unknown) {
     parseErrors.push({ filePath, message: (e as Error).message });
     return null;
+  }
+
+  // Pre-process for schema migration: owasp_llm from string to array
+  if (doc && typeof doc === 'object') {
+    const d = doc as Record<string, any>;
+    if (d.maps_to && typeof d.maps_to.owasp_llm === 'string') {
+      console.warn(`DEPRECATION WARNING: File ${filePath} uses string for maps_to.owasp_llm. Please migrate to an array.`);
+      d.maps_to.owasp_llm = [d.maps_to.owasp_llm];
+    }
   }
 
   // Schema validation

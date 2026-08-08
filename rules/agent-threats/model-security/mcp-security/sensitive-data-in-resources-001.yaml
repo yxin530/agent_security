@@ -4,7 +4,7 @@ severity: high
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A09:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+maps_to: { owasp: ["A09:2021"], owasp_llm: ["LLM06:2025"], atlas: "AML.T0048" }
 detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "registerResource|resource\\(", flags: "i" }, { pattern: "(password|token|secret|privateKey|ssn|icNumber)", flags: "i" }, { pattern: "redact|mask|authorize|scope", flags: "i", negate: true }] }
 description: "Detects sensitive values exposed through a resource without visible protection."
 remediation: "Minimize resource data and enforce authorization and redaction."

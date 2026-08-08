@@ -6,7 +6,7 @@ detection_tier: regex
 scope: language-agnostic
 maps_to:
   owasp: ["A07:2021"]
-  owasp_llm: "LLM02:2025"
+  owasp_llm: ["LLM02:2025"]
   atlas: "AML.T0046"
 detection:
   extensions: []

@@ -5,7 +5,10 @@ These entries describe the OWASP LLM categories used by agent-threat rules. They
 - `LLM01:2025` Prompt Injection: crafted input changes an LLM application's intended behavior.
 - `LLM02:2025` Sensitive Information Disclosure: an LLM system exposes sensitive information or credentials.
 - `LLM03:2025` Supply Chain: compromised models, data, components, or dependencies affect an LLM application.
+- `LLM04:2025` Data Poisoning: tampered data in training or retrieval stores compromises model behavior.
+- `LLM05:2025` Improper Output Handling: LLM output is executed or rendered without adequate validation.
 - `LLM06:2025` Excessive Agency: an LLM system receives excessive permissions or action scope.
+- `LLM07:2025` System Prompt Leakage: an LLM system exposes its internal instructions to an untrusted user.
 - `LLM08:2025` Vector and Embedding Weaknesses: weaknesses in vector or embedding stores affect retrieval integrity.
 - `LLM09:2025` Misinformation: unreliable model outputs can create unsafe downstream behavior.
 - `LLM10:2025` Unbounded Consumption: uncontrolled model use creates resource, cost, or availability abuse.

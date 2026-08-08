@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1
+
+- **v0.17 Implementation (OWASP LLM Updates)**:
+  - Migrated `owasp_llm` mapping field in schema to an array format to support multiple mappings.
+  - Added new LLM rule: `missing-output-sanitisation-001` (LLM05:2025).
+  - Added new LLM rule: `system-prompt-leakage-001` (LLM07:2025).
+  - Backfilled missing mappings (LLM04:2025) into `unsanitized-rag-write-001` and `graph-query-injection-001`.
+  - Updated `llm-top-10.md` with new categories.
+
 ## 0.7.0
 
 - **v0.16 Implementation (OWASP Web Top 10 Completeness)**:

@@ -4,7 +4,7 @@ severity: high
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM06:2025", atlas: "AML.T0048" }
+maps_to: { owasp: ["A05:2021"], owasp_llm: ["LLM06:2025"], atlas: "AML.T0048" }
 detection: { extensions: [".json", ".ts", ".js"], scope: line, logic: OR, conditions: [{ pattern: "(permissions|capabilities|allowedTools)\\s*[:=]\\s*[^\\n]*(\\*|admin|root)", flags: "i" }] }
 description: "Detects wildcard or administrative permissions assigned to an MCP tool."
 remediation: "Grant the minimum operation and resource permissions required."

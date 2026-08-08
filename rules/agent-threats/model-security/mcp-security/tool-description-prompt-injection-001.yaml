@@ -4,7 +4,7 @@ severity: high
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A03:2021"], owasp_llm: "LLM01:2025", atlas: "AML.T0051" }
+maps_to: { owasp: ["A03:2021"], owasp_llm: ["LLM01:2025"], atlas: "AML.T0051" }
 detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "description|title", flags: "i" }, { pattern: "ignore previous|reveal system|disregard|secretly", flags: "i" }] }
 description: "Detects instruction-like prompt injection embedded in a tool description."
 remediation: "Keep descriptions declarative and review them as untrusted model-facing content."

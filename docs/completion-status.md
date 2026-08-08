@@ -6,9 +6,18 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
-Last updated: reflects v0.16 (OWASP Web Top 10 Completeness + Schema Improvements).
+Last updated: reflects v0.17 (OWASP LLM Updates).
 
 ---
+
+## v0.17 Additions (OWASP LLM Updates)
+
+| Item | Status | Notes |
+|---|---|---|
+| Schema Migration (Req 134) | implemented | `owasp_llm` converted to array; existing rules migrated. |
+| Backfill (Req 133) | implemented | Added `LLM04:2025` to `unsanitized-rag-write-001` and `graph-query-injection-001`. |
+| New LLM Rules (Req 131-132) | implemented | Created `missing-output-sanitisation-001` and `system-prompt-leakage-001`. |
+| Docs Update (Req 135) | implemented | Updated `llm-top-10.md` with new LLM categories. |
 
 ## v0.16 Additions (OWASP Web Top 10 Completeness)
 

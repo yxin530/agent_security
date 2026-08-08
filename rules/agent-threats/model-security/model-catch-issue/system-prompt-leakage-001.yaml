@@ -1,0 +1,52 @@
+id: system-prompt-leakage-001
+title: "System Prompt Leakage"
+severity: high
+category: agent-threats
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A05:2021
+  owasp_llm:
+    - LLM07:2025
+  cwe:
+    - CWE-200
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
+  extensions: [".js", ".ts", ".py"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "system_?prompt|SYSTEM_PROMPT|systemMessage|systemRole"
+      flags: "i"
+      description: "Reads a system prompt variable"
+    - pattern: "res\\.(?:send|json|end)\\(|return\\s+.*system[Pp]rompt|response\\.body\\s*="
+      description: "System prompt used in a response body"
+description: >
+  Detects when a variable whose name indicates it holds a system prompt is used
+  directly in an HTTP response. This pattern is a narrow, hardcoded variable name
+  heuristic, and runtime log inspection may be needed for full coverage of system
+  prompt leakage.
+remediation: "Never return system instructions, roles, or raw prompts directly to the end user in an API response."
+ai_guidance:
+  watch_for:
+    - "This rule relies on a narrow heuristic; full coverage may require runtime inspection."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "systemPrompt returned in API response"
+    code: |
+      app.get('/debug', (req, res) => {
+        const systemPrompt = process.env.SYSTEM_PROMPT;
+        res.json({ systemPrompt });
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "Normal API response without system prompt"
+    code: |
+      app.get('/debug', (req, res) => {
+        const systemPrompt = process.env.SYSTEM_PROMPT;
+        res.json({ message: 'OK' });
+      });

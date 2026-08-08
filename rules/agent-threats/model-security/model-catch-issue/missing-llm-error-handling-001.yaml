@@ -4,7 +4,7 @@ severity: medium
 category: model-security
 detection_tier: regex
 scope: language-specific
-maps_to: { owasp: ["A05:2021"], owasp_llm: "LLM09:2025", atlas: "AML.T0043" }
+maps_to: { owasp: ["A05:2021"], owasp_llm: ["LLM09:2025"], atlas: "AML.T0043" }
 detection:
   file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
   extensions: [".js", ".ts", ".py"]

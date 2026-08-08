@@ -1,0 +1,56 @@
+id: missing-output-sanitisation-001
+title: "Missing Sanitization of LLM Output"
+severity: high
+category: agent-threats
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+  owasp_llm:
+    - LLM05:2025
+  cwe:
+    - CWE-79
+    - CWE-89
+detection:
+  file_patterns: ["**/*.js", "**/*.ts"]
+  extensions: [".js", ".ts"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "openai\\.chat\\.completions\\.create|anthropic\\.messages\\.create|generateText\\(|model\\.generate\\("
+      description: "Call to an LLM SDK"
+    - pattern: "res\\.(?:send|json|end)\\(|\\.innerHTML\\s*=|eval\\("
+      description: "Use of a potentially vulnerable sink"
+    - pattern: "DOMPurify|sanitizeHtml|escapeHtml|validator\\.escape|parameterized|prepared"
+      negate: true
+      description: "No sanitization function found in the file"
+description: >
+  Detects an LLM SDK call combined with a direct assignment to a vulnerable sink
+  (HTTP response, innerHTML, or eval) without an obvious sanitization step in
+  the same file. This is a pattern-level heuristic, and correct output handling
+  always depends on the downstream sink type (e.g., HTML escaping for web pages,
+  prepared statements for SQL).
+remediation: "Always treat LLM output as untrusted user input. Apply context-specific sanitization (like DOMPurify for HTML or prepared statements for SQL) before passing it to a downstream component."
+ai_guidance:
+  watch_for:
+    - "Sanitization could occur in a different file or layer, which may result in a false positive for this file-scoped rule."
+  references: []
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.js"
+    description: "LLM output sent directly to res.send"
+    code: |
+      app.post('/chat', async (req, res) => {
+        const reply = await openai.chat.completions.create({ messages: [] });
+        res.send(reply.choices[0].message.content);
+      });
+  - type: true_negative
+    fixture: "tn.js"
+    description: "LLM output sanitized before res.send"
+    code: |
+      app.post('/chat', async (req, res) => {
+        const reply = await openai.chat.completions.create({ messages: [] });
+        res.send(sanitizeHtml(reply.choices[0].message.content));
+      });

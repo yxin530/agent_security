@@ -15,7 +15,7 @@ ai_guidance:
 maps_to:
   owasp:
     - "A08:2021"
-  owasp_llm: "LLM02:2025"
+  owasp_llm: ["LLM02:2025"]
   atlas: "AML.T0046"
 detection:
   extensions: []
