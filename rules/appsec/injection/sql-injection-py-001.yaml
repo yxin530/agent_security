@@ -18,10 +18,10 @@ detection:
     - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\\s+.+['\"]\\s*\\+\\s*[a-zA-Z_]\\w*"
       flags: "i"
       description: "SQL keyword followed by string concatenation with a variable using +"
-    - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\\s+[^'\"]*%\\s*[a-zA-Z_\\(]"
+    - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)[^'\"]*['\"]\\s*%\\s*[a-zA-Z_\\(]"
       flags: "i"
-      description: "SQL keyword with old-style % string formatting"
-    - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)[^'\"]*f['\"].*(\\{[a-zA-Z_]\\w*\\})"
+      description: "SQL keyword with old-style % string formatting outside the string"
+    - pattern: "f['\"][^'\"]*(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE).*\\{[a-zA-Z_]\\w*\\}"
       flags: "i"
       description: "SQL keyword in an f-string with variable interpolation"
 description: >
