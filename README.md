@@ -38,7 +38,7 @@ The package also provides `agent-security-mcp`, an stdio MCP server exposing pro
 | `missing-rate-limit-*` (js/php/go/java/py) | medium | A04:2021 | — |
 | `pii-pattern-001` | high | A09:2021 | — |
 | `pii-in-logs-*` (js/py/php/go/java/cs) | high | A09:2021 | — |
-| `missing-breach-log-js-001` | medium | A09:2021 | Section 12B |
+| `missing-breach-log-js-001`, `missing-breach-notification-001` | medium | A09:2021 | Section 12B |
 | `broken-object-level-authz-001`, `missing-nextjs-auth-001`, `nextjs-open-redirect-001` | high/medium | A01:2021 | — |
 | `weak-cipher-001`, `insecure-random-001`, `weak-cipher-py-001`, `insecure-random-java-001` | high | A02:2021 | — |
 | `xss-reflected-js-001`, `xss-innerHTML-001`, `xss-react-dangerouslySetInnerHTML-001`, `xss-php-001`, `xss-reflected-py-001` | high | A03:2021 | — |
@@ -55,10 +55,11 @@ Agent-threat rules use OWASP LLM and MITRE ATLAS mappings:
 | Category | Rules |
 |---|---|
 | Agent manipulation | `unvalidated-tool-args-001` |
-| Data poisoning | `unsanitized-rag-write-001` |
-| Prompt injection | `unescaped-prompt-concat-001` |
-| Model security | `hardcoded-llm-key-001`, `permissive-mcp-grant-001`, `missing-output-sanitisation-001`, `system-prompt-leakage-001` |
-| Model abuse | `no-llm-rate-limit-001`, `unvalidated-agent-write-001` |
+| Data poisoning | `unsanitized-rag-write-001`, `graph-query-injection-001`, `tool-output-injection-001` |
+| Model abuse | `credential-stuffing-pattern-001`, `i2p-endpoint-001`, `insecure-auto-update-001`, `no-llm-rate-limit-001`, `onion-callback-endpoint-001`, `remote-payload-exec-001`, `session-fixation-001`, `unrestricted-code-exec-001`, `unthrottled-model-output-001`, `unvalidated-agent-write-001` |
+| Model security | `excessive-tool-permissions-001`, `hardcoded-llm-key-001`, `missing-audit-logging-001`, `missing-destructive-action-confirmation-001`, `missing-llm-error-handling-001`, `missing-output-sanitisation-001`, `missing-output-validation-001`, `missing-tool-arg-validation-001`, `missing-tool-auth-001`, `missing-tool-rate-limiting-001`, `permissive-mcp-grant-001`, `sensitive-data-in-resources-001`, `system-prompt-leakage-001`, `tool-description-prompt-injection-001`, `tool-ssrf-001`, `unbounded-tool-output-001`, `unrestricted-filesystem-access-001`, `unrestricted-shell-exec-001`, `unsafe-server-instructions-001`, `unverified-fine-tune-source-001` |
+| Prompt injection | `indirect-prompt-injection-001`, `indirect-tool-injection-001`, `system-prompt-injection-001`, `unescaped-prompt-concat-001` |
+| Supply chain | `dependency-confusion-001` |
 
 ## Coverage
 
