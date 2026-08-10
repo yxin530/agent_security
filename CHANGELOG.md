@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+- Fixed CI test fixtures and Python SQLi regex. Cleaned up stray rule bundle files causing package verification failures.
+
 ## 0.9.0
 
 - **v0.19 Implementation (React/Next.js, Language Gap-Fill, ATLAS Backfill)**:
