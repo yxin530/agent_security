@@ -1,23 +1,42 @@
 id: indirect-prompt-injection-001
-title: "Indirect Prompt Injection from Fetched Content"
+title: Indirect Prompt Injection from Fetched Content
 severity: high
 category: prompt-injection
 detection_tier: regex
 scope: language-specific
-maps_to: { owasp: ["A03:2021"], owasp_llm: ["LLM01:2025"], atlas: "AML.T0051" }
+maps_to:
+  owasp:
+    - A03:2021
+  owasp_llm:
+    - LLM01:2025
+  atlas: AML.T0051
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
-  extensions: [".js", ".ts", ".py"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  extensions:
+    - .js
+    - .ts
+    - .py
   scope: line
   logic: AND
   conditions:
-    - pattern: '(prompt|system|developer)\s*=\s*[^\n]*(response\.data|httpResponse|fileContent|dbResult)'
-      flags: "i"
-    - pattern: '(sanitize|escape|<document>)'
-      flags: "i"
+    - pattern: (prompt|system|developer)\s*=\s*[^\n]*(response\.data|httpResponse|fileContent|dbResult)
+      flags: i
+    - pattern: (sanitize|escape|<document>)
+      flags: i
       negate: true
-description: "Detects fetched or stored content concatenated into an LLM prompt without a visible content wrapper."
-remediation: "Treat fetched content as untrusted data and wrap it in an explicit content boundary."
+description: Detects fetched or stored content concatenated into an LLM prompt without a visible content wrapper.
+remediation: Treat fetched content as untrusted data and wrap it in an explicit content boundary.
 test_cases:
-  - { type: true_positive, fixture: vulnerable.ts, description: "HTTP response concatenated into prompt", code: "const prompt = 'Summarize: ' + response.data;" }
-  - { type: true_negative, fixture: safe.ts, description: "Fetched content wrapped before prompting", code: "const prompt = 'Summarize <document>' + sanitize(response.data) + '</document>';" }
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: HTTP response concatenated into prompt
+    code: 'const prompt = ''Summarize: '' + response.data;'
+  - type: true_negative
+    fixture: safe.ts
+    description: Fetched content wrapped before prompting
+    code: const prompt = 'Summarize <document>' + sanitize(response.data) + '</document>';
+confidence: heuristic
+detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.

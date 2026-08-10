@@ -1,30 +1,37 @@
 id: missing-output-validation-001
-title: "Missing Output Validation"
+title: Missing Output Validation
 severity: high
 category: agent-threats
 scope: language-specific
 detection_tier: regex
 ai_guidance:
   watch_for:
-    - "A match requires human review to confirm actual risk, as legitimate code may pass LLM output to a sink safely via context not visible in the static pattern."
+    - A match requires human review to confirm actual risk, as legitimate code may pass LLM output to a sink safely via context not visible in the static pattern.
   references:
-    - title: "OWASP Top 10 for LLM: LLM02 Sensitive Information Disclosure"
-      url: "https://genai.owasp.org/llm-top-10/"
+    - title: 'OWASP Top 10 for LLM: LLM02 Sensitive Information Disclosure'
+      url: https://genai.owasp.org/llm-top-10/
   related_rule_ids:
-    - "unrestricted-code-exec-001"
+    - unrestricted-code-exec-001
 maps_to:
   owasp:
-    - "A03:2021"
-  owasp_llm: ["LLM02:2025"]
-  atlas: "AML.T0048"
+    - A03:2021
+  owasp_llm:
+    - LLM02:2025
+  atlas: AML.T0048
 detection:
-  extensions: [".js", ".ts", ".py"]
-  file_patterns: ["*.js", "*.ts", "*.py"]
+  extensions:
+    - .js
+    - .ts
+    - .py
+  file_patterns:
+    - '*.js'
+    - '*.ts'
+    - '*.py'
   scope: line
   conditions:
-    - pattern: '(?:query|insertOne|exec|spawn|redirect|send)\(\s*[a-zA-Z0-9_\.\[\]]*(?:\.content|\.text|\.choices\[0\]\.message\.content)'
-      flags: "i"
-      description: "Detects LLM response field piped into sinks like DB, shell, or HTTP without validation"
+    - pattern: (?:query|insertOne|exec|spawn|redirect|send)\(\s*[a-zA-Z0-9_\.\[\]]*(?:\.content|\.text|\.choices\[0\]\.message\.content)
+      flags: i
+      description: Detects LLM response field piped into sinks like DB, shell, or HTTP without validation
 description: |
   Detects an LLM client response field (`.content`, `.text`, `.choices[0].message.content`) assigned or spread directly into a database write call, shell invocation, or HTTP response body without an intermediate sanitization, schema validation, or allowlist check. 
   Note: This rule flags unvalidated LLM output reaching a sink.
@@ -32,10 +39,12 @@ remediation: |
   Validate or sanitize the LLM response output before piping it to downstream sinks.
 test_cases:
   - type: true_positive
-    description: ".content directly into db.query()"
+    description: .content directly into db.query()
     fixture: vulnerable.ts
-    code: "db.query(response.choices[0].message.content);"
+    code: db.query(response.choices[0].message.content);
   - type: true_negative
-    description: "passed through z.parse() first"
+    description: passed through z.parse() first
     fixture: safe.ts
-    code: "db.query(z.parse(response.choices[0].message.content));"
+    code: db.query(z.parse(response.choices[0].message.content));
+confidence: heuristic
+detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.

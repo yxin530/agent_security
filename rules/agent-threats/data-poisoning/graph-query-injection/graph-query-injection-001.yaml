@@ -1,22 +1,42 @@
 id: graph-query-injection-001
-title: "Graph Query Injection"
+title: Graph Query Injection
 severity: high
 category: data-poisoning
 detection_tier: regex
 scope: language-specific
-maps_to: { owasp: ["A03:2021"], owasp_llm: ["LLM03:2025", "LLM04:2025"], atlas: "AML.T0020" }
+maps_to:
+  owasp:
+    - A03:2021
+  owasp_llm:
+    - LLM03:2025
+    - LLM04:2025
+  atlas: AML.T0020
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
-  extensions: [".js", ".ts", ".py"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  extensions:
+    - .js
+    - .ts
+    - .py
   scope: line
   logic: OR
   conditions:
-    - pattern: '(MATCH|CREATE|MERGE)\s*\([^\n]*["'']\s*\+\s*[a-zA-Z_]\w*'
-      flags: "i"
-    - pattern: '(MATCH|CREATE|MERGE)[^\n]*\$\{\s*[a-zA-Z_]\w*'
-      flags: "i"
-description: "Detects Cypher or Gremlin query construction with direct variable interpolation or concatenation."
-remediation: "Use graph-driver parameters and keep untrusted values out of query syntax."
+    - pattern: (MATCH|CREATE|MERGE)\s*\([^\n]*["']\s*\+\s*[a-zA-Z_]\w*
+      flags: i
+    - pattern: (MATCH|CREATE|MERGE)[^\n]*\$\{\s*[a-zA-Z_]\w*
+      flags: i
+description: Detects Cypher or Gremlin query construction with direct variable interpolation or concatenation.
+remediation: Use graph-driver parameters and keep untrusted values out of query syntax.
 test_cases:
-  - { type: true_positive, fixture: vulnerable.ts, description: "Graph query concatenates user input", code: "const q = 'MATCH (n {name: ' + userInput + '})';" }
-  - { type: true_negative, fixture: safe.ts, description: "Graph query uses parameters", code: "session.run('MATCH (n {name: $name})', { name: userInput });" }
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Graph query concatenates user input
+    code: 'const q = ''MATCH (n {name: '' + userInput + ''})'';'
+  - type: true_negative
+    fixture: safe.ts
+    description: Graph query uses parameters
+    code: 'session.run(''MATCH (n {name: $name})'', { name: userInput });'
+confidence: heuristic
+detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.

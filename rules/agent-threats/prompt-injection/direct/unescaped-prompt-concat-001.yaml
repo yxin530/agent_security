@@ -1,25 +1,42 @@
 id: unescaped-prompt-concat-001
-title: "Unescaped User Input in LLM Prompt"
+title: Unescaped User Input in LLM Prompt
 severity: high
 category: prompt-injection
 detection_tier: regex
 scope: language-specific
 maps_to:
-  owasp: ["A03:2021"]
-  owasp_llm: ["LLM01:2025"]
-  atlas: "AML.T0051"
+  owasp:
+    - A03:2021
+  owasp_llm:
+    - LLM01:2025
+  atlas: AML.T0051
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
-  extensions: [".js", ".ts", ".py"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  extensions:
+    - .js
+    - .ts
+    - .py
   scope: line
-  logic: OR
+  logic: AND
   conditions:
-    - pattern: '(system|developer|prompt)\s*=\s*[^\n]*[+`]\s*(userInput|req\.body|request\.data|user_content)'
-      flags: "i"
-    - pattern: '(system|developer|prompt)[^\n]*\$\{\s*(userInput|req\.body|request\.data)'
-      flags: "i"
-description: "Detects direct interpolation or concatenation of untrusted input into a system/developer prompt string."
-remediation: "Use structured message roles and delimit untrusted content as data rather than prompt instructions."
+    - pattern: (system|developer|prompt)[^\n]*(?:=\s*[^\n]*[+`]|\$\{)\s*(userInput|req\.body|request\.data|user_content)
+      flags: i
+    - pattern: console\.(log|error|warn|debug|info)|logger\.|print\(
+      flags: i
+      negate: true
+description: Detects direct interpolation or concatenation of untrusted input into a system/developer prompt string.
+remediation: Use structured message roles and delimit untrusted content as data rather than prompt instructions.
 test_cases:
-  - { type: true_positive, fixture: vulnerable.ts, description: "User input concatenated into system prompt", code: "const prompt = 'system: ' + userInput;" }
-  - { type: true_negative, fixture: safe.ts, description: "Structured system and user messages", code: "client.messages.create({ messages: [{ role: 'user', content: userInput }] });" }
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: User input concatenated into system prompt
+    code: 'const prompt = ''system: '' + userInput;'
+  - type: true_negative
+    fixture: safe.ts
+    description: Structured system and user messages
+    code: 'client.messages.create({ messages: [{ role: ''user'', content: userInput }] });'
+confidence: heuristic
+detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.

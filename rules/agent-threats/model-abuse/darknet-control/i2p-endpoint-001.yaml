@@ -1,39 +1,44 @@
 id: i2p-endpoint-001
-title: "I2P Darknet Callback Endpoint"
+title: I2P Darknet Callback Endpoint
 severity: high
 category: agent-threats
 scope: language-agnostic
 detection_tier: regex
 ai_guidance:
   watch_for:
-    - "A match warrants investigation, not an automatic verdict of malicious infrastructure. Legitimate I2P privacy tooling exists."
+    - A match warrants investigation, not an automatic verdict of malicious infrastructure. Legitimate I2P privacy tooling exists.
   references:
-    - title: "I2P Anonymous Network"
-      url: "https://geti2p.net/en/"
+    - title: I2P Anonymous Network
+      url: https://geti2p.net/en/
   related_rule_ids:
-    - "onion-callback-endpoint-001"
+    - onion-callback-endpoint-001
 maps_to:
   owasp:
-    - "A08:2021"
-  owasp_llm: ["LLM02:2025"]
-  atlas: "AML.T0046"
+    - A08:2021
+  owasp_llm:
+    - LLM02:2025
+  atlas: AML.T0046
 detection:
   extensions: []
   scope: line
   conditions:
-    - pattern: '(?:fetch|\.get|\.post|\.request)\s*\([''"][^''"]*?[a-z0-9\-]{1,63}\.i2p'
-      flags: "i"
-      description: "Detects hardcoded .i2p strings in outbound network calls"
+    - pattern: (?:fetch|\.get|\.post|\.request)\s*\(['"][^'"]*?[a-z0-9\-]{1,63}\.i2p
+      flags: i
+      description: Detects hardcoded .i2p strings in outbound network calls
 description: |
   Detects a hardcoded string literal matching the I2P hostname pattern (`.i2p`) used as the target of an outbound network call (`fetch`, `requests.get`, etc). Note that this is a narrow-scope detector and legitimate privacy tools use I2P.
 remediation: |
   Investigate the outbound network call to ensure it is not a C2 or exfiltration endpoint.
 test_cases:
   - type: true_positive
-    description: "hardcoded .i2p address in a fetch call"
+    description: hardcoded .i2p address in a fetch call
     fixture: vulnerable.ts
-    code: "fetch('http://example.i2p/api/callback');"
+    code: fetch('http://example.i2p/api/callback');
   - type: true_negative
-    description: ".i2p string present only in a comment"
+    description: .i2p string present only in a comment
     fixture: safe.ts
-    code: "// send to .i2p address\nfetch(url);"
+    code: |-
+      // send to .i2p address
+      fetch(url);
+confidence: heuristic
+detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.

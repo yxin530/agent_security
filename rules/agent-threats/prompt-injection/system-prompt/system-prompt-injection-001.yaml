@@ -1,20 +1,39 @@
 id: system-prompt-injection-001
-title: "User Input in System Prompt"
+title: User Input in System Prompt
 severity: high
 category: prompt-injection
 detection_tier: regex
 scope: language-specific
-maps_to: { owasp: ["A03:2021"], owasp_llm: ["LLM01:2025"], atlas: "AML.T0051" }
+maps_to:
+  owasp:
+    - A03:2021
+  owasp_llm:
+    - LLM01:2025
+  atlas: AML.T0051
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
-  extensions: [".js", ".ts", ".py"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  extensions:
+    - .js
+    - .ts
+    - .py
   scope: line
   logic: OR
   conditions:
-    - pattern: '(role:\s*["'']system["'']|system[_ ]prompt)[^\n]*(userInput|req\.body|request\.data)'
-      flags: "i"
-description: "Detects user-controlled input reaching a system or developer-role prompt field."
-remediation: "Keep user input in a user-role message and preserve the system prompt as trusted configuration."
+    - pattern: (role:\s*["']system["']|system[_ ]prompt)[^\n]*(userInput|req\.body|request\.data)
+      flags: i
+description: Detects user-controlled input reaching a system or developer-role prompt field.
+remediation: Keep user input in a user-role message and preserve the system prompt as trusted configuration.
 test_cases:
-  - { type: true_positive, fixture: vulnerable.ts, description: "User input assigned to system role", code: "messages: [{ role: 'system', content: userInput }]" }
-  - { type: true_negative, fixture: safe.ts, description: "User input assigned to user role", code: "messages: [{ role: 'user', content: userInput }]" }
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: User input assigned to system role
+    code: 'messages: [{ role: ''system'', content: userInput }]'
+  - type: true_negative
+    fixture: safe.ts
+    description: User input assigned to user role
+    code: 'messages: [{ role: ''user'', content: userInput }]'
+confidence: heuristic
+detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.

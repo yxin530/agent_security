@@ -1,11 +1,34 @@
 id: tool-description-prompt-injection-001
-title: "Prompt Injection in MCP Tool Description"
+title: Prompt Injection in MCP Tool Description
 severity: high
 category: model-security
 detection_tier: regex
 scope: language-agnostic
-maps_to: { owasp: ["A03:2021"], owasp_llm: ["LLM01:2025"], atlas: "AML.T0051" }
-detection: { extensions: [".ts", ".js"], scope: line, logic: AND, conditions: [{ pattern: "description|title", flags: "i" }, { pattern: "ignore previous|reveal system|disregard|secretly", flags: "i" }] }
-description: "Detects instruction-like prompt injection embedded in a tool description."
-remediation: "Keep descriptions declarative and review them as untrusted model-facing content."
-test_cases: [{ type: true_positive, fixture: vulnerable.ts, description: "Description contains injection text" }, { type: true_negative, fixture: safe.ts, description: "Description contains no instructions" }]
+maps_to:
+  owasp:
+    - A03:2021
+  owasp_llm:
+    - LLM01:2025
+  atlas: AML.T0051
+detection:
+  extensions:
+    - .ts
+    - .js
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: description|title
+      flags: i
+    - pattern: ignore previous|reveal system|disregard|secretly
+      flags: i
+description: Detects instruction-like prompt injection embedded in a tool description.
+remediation: Keep descriptions declarative and review them as untrusted model-facing content.
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Description contains injection text
+  - type: true_negative
+    fixture: safe.ts
+    description: Description contains no instructions
+confidence: heuristic
+detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.
