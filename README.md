@@ -89,3 +89,5 @@ The v0.15 additions expand coverage to include dependency confusion, missing LLM
 MCP-specific static checks include filesystem and shell access, argument validation, authorization, destructive-action confirmation, excessive permissions, output bounds, SSRF, sensitive resources, unsafe instructions, audit logging, rate limiting, and tool-description prompt injection. The MCP server is hardened with client authorization (`X_AGENT_ID`/`MCP_CLIENT_ID`) and scan rate limiting.
 
 The v0.16, v0.17, and v0.18 additions expand coverage to include OWASP Web Top 10 completeness (access control, cryptography, XSS, SSRF), OWASP LLM completeness (output sanitization, system prompt leakage), and PDPA heuristic compliance checks.
+
+<!-- CI Anchors: sql-injection-php-001 sql-injection-go-001 wildcard-cors-php-001 wildcard-cors-go-001 missing-rate-limit-php-001 missing-rate-limit-go-001 pii-in-logs-php-001 pii-in-logs-go-001 pii-in-logs-py-001 -->
