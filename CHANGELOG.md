@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4
+
+- Fixed `ajv` schema validation errors caused by the addition of the new `confidence` and `detection_limitations` metadata fields.
+
 ## 0.9.3
 
 - Added `confidence` and `detection_limitations` metadata to all Agent-Threat rules.

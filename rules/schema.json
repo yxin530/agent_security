@@ -127,6 +127,13 @@
           "code": { "type": "string" }
         }
       }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["heuristic", "exact"]
+    },
+    "detection_limitations": {
+      "type": "string"
     }
   }
 }
