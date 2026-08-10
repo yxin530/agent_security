@@ -14,7 +14,7 @@ Last updated: reflects v0.19 (React/Next.js Coverage, Language Gap-Fill, ATLAS B
 
 | Item | Status | Notes |
 |---|---|---|
-| Community Files (Req 154) | implemented | Created `CONTRIBUTING.md` and template `CONTRIBUTORS.md`. (Contributors file removed post-commit at user request). |
+| Community File (Req 154) | implemented | Created `CONTRIBUTING.md` . |
 | React/Next.js Rules (Req 143-147) | implemented | Created 5 React/Next.js rules for XSS, SQLi, Auth, Open Redirect, Exposed Env. |
 | Language Gap-Fill (Req 148-153) | implemented | Created 11 new language variants for Injection, XSS, Logging, SSRF, Crypto, Rate Limiting. |
 | Bonus Rules (Req 154b-154c) | implemented | Created `nosql-injection-js-001` and rate limiting rules for Java/Python. |
