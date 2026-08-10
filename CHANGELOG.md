@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.9.1
+## 0.9.3
+
+- Added `confidence` and `detection_limitations` metadata to all Agent-Threat rules.
+- Enhanced regex heuristics for `unescaped-prompt-concat-001`, `tool-output-injection-001`, and `unsanitized-rag-write-001` to reduce false positives.
+- Synchronized `README.md` rule documentation with the active rule catalog.
+
+## 0.9.2
 
 - Fixed CI test fixtures and Python SQLi regex. Cleaned up stray rule bundle files causing package verification failures.
 
