@@ -32,17 +32,17 @@ The package also provides `agent-security-mcp`, an stdio MCP server exposing pro
 
 | Rule | Severity | OWASP | PDPA mapping |
 |---|---|---|---|
-| `hardcoded-secret-001` | critical | A07:2021 | Section 25 |
-| `sql-injection-js-001`, `sql-injection-php-001`, `sql-injection-go-001`, `sql-injection-rb-001`, `sql-injection-java-001`, `sql-injection-cs-001`, `sql-injection-rs-001` | high | A03:2021 | — |
-| `wildcard-cors-js-001`, `wildcard-cors-php-001`, `wildcard-cors-go-001`, `wildcard-cors-rb-001`, `wildcard-cors-java-001`, `wildcard-cors-cs-001` | high | A05:2021 | — |
-| `missing-rate-limit-js-001`, `missing-rate-limit-php-001`, `missing-rate-limit-go-001` | medium | A04:2021 | — |
+| `hardcoded-secret-001`, `nextjs-exposed-env-001` | critical/high | A07:2021 | Section 25 |
+| `sql-injection-*` (js/py/php/go/rb/java/cs/rs/nextjs), `nosql-injection-js-001`, `command-injection-*` (js/py) | high | A03:2021 | — |
+| `wildcard-cors-*` (js/php/go/rb/java/cs) | high | A05:2021 | — |
+| `missing-rate-limit-*` (js/php/go/java/py) | medium | A04:2021 | — |
 | `pii-pattern-001` | high | A09:2021 | — |
-| `pii-in-logs-js-001`, `pii-in-logs-py-001`, `pii-in-logs-php-001`, `pii-in-logs-go-001` | high | A09:2021 | — |
+| `pii-in-logs-*` (js/py/php/go/java/cs) | high | A09:2021 | — |
 | `missing-breach-log-js-001` | medium | A09:2021 | Section 12B |
-| `broken-object-level-authz-001` | high | A01:2021 | — |
-| `weak-cipher-001`, `insecure-random-001` | high | A02:2021 | — |
-| `xss-reflected-js-001`, `xss-innerHTML-001` | high | A03:2021 | — |
-| `ssrf-pattern-js-001` | high | A10:2021 | — |
+| `broken-object-level-authz-001`, `missing-nextjs-auth-001`, `nextjs-open-redirect-001` | high/medium | A01:2021 | — |
+| `weak-cipher-001`, `insecure-random-001`, `weak-cipher-py-001`, `insecure-random-java-001` | high | A02:2021 | — |
+| `xss-reflected-js-001`, `xss-innerHTML-001`, `xss-react-dangerouslySetInnerHTML-001`, `xss-php-001`, `xss-reflected-py-001` | high | A03:2021 | — |
+| `ssrf-pattern-js-001`, `ssrf-pattern-py-001`, `ssrf-pattern-go-001` | high | A10:2021 | — |
 | `missing-consent-collection-001` | medium | A05:2021 | Section 6 |
 | `missing-privacy-notice-001` | medium | A05:2021 | Section 7 |
 | `unrestricted-pii-api-001` | medium | A01:2021 | Section 8 |
@@ -64,13 +64,14 @@ Agent-threat rules use OWASP LLM and MITRE ATLAS mappings:
 
 | Language | Shipped language-specific coverage | Planned |
 |---|---|---|
-| JavaScript/TypeScript | SQL injection, CORS, rate limiting, PII logs, breach-log heuristic, access control, crypto, XSS, SSRF, PDPA heuristics | — |
-| PHP/Laravel | SQL injection, CORS, rate limiting, PII logs | — |
-| Go | SQL injection, CORS, rate limiting, PII logs | — |
-| Python | PII log-call variant; SQL injection remains v0.1-supported | — |
+| React/Next.js | XSS, SQLi, Auth, Open Redirect, Exposed Env | — |
+| JavaScript/TypeScript | SQL injection, CORS, rate limiting, PII logs, breach-log heuristic, access control, crypto, XSS, SSRF, PDPA heuristics, Command/NoSQL Injection | — |
+| PHP/Laravel | SQL injection, CORS, rate limiting, PII logs, XSS | — |
+| Go | SQL injection, CORS, rate limiting, PII logs, SSRF | — |
+| Python | SQL/Command injection, XSS, SSRF, Crypto, Rate Limiting, PII logs | — |
 | Ruby | SQL injection, CORS | — |
-| Java | SQL injection, CORS | — |
-| C#/.NET | SQL injection, CORS | — |
+| Java | SQL injection, CORS, Rate limiting, PII logs, Crypto | — |
+| C#/.NET | SQL injection, CORS, PII logs | — |
 | Rust | SQL injection | CORS (deferred) |
 
 Skills: [general security audit](skills/security-audit/SKILL.md) for OWASP/ATLAS framing, or [PDPA security audit](skills/pdpa-security-audit/SKILL.md) for Malaysian compliance framing. Read the [PDPA mapping notes](docs/legal/pdpa-2024-mapping.md), [OWASP web docs](docs/owasp/web-top-10.md), [OWASP LLM docs](docs/owasp/llm-top-10.md), and [MITRE ATLAS docs](docs/frameworks/mitre-atlas.md) before relying on mappings or agent-generated explanations.

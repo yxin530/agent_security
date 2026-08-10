@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0
+
+- **v0.19 Implementation (React/Next.js, Language Gap-Fill, ATLAS Backfill)**:
+  - Added React/Next.js specific rules: `xss-react-dangerouslySetInnerHTML-001`, `sql-injection-nextjs-001`, `missing-nextjs-auth-001`, `nextjs-open-redirect-001`, `nextjs-exposed-env-001`.
+  - Added language gap-fill rules for injection (`sql-injection-py-001`, `command-injection-js-001`, `command-injection-py-001`, `nosql-injection-js-001`), XSS (`xss-php-001`, `xss-reflected-py-001`), logging (`pii-in-logs-java-001`, `pii-in-logs-cs-001`), SSRF (`ssrf-pattern-py-001`, `ssrf-pattern-go-001`), cryptography (`weak-cipher-py-001`, `insecure-random-java-001`), and rate limiting (`missing-rate-limit-java-001`, `missing-rate-limit-py-001` - temporarily in `logging/`).
+  - Added ATLAS technique metadata (`maps_to.atlas`) backfill for `missing-output-sanitisation-001` (AML.T0048) and `system-prompt-leakage-001` (AML.T0046).
+  - Created `CONTRIBUTING.md` and updated `architecture.md` / `requirements.md` / `agent.md` to reflect new guidelines.
+
 ## 0.8.0
 
 - **v0.18 Implementation (PDPA Completeness)**:

@@ -1,0 +1,69 @@
+id: nosql-injection-js-001
+title: "NoSQL Injection via Unsanitized MongoDB Query (JavaScript/TypeScript)"
+severity: high
+category: injection
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+  cwe:
+    - CWE-943
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+  extensions: [".js", ".ts", ".jsx", ".tsx"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "(?:collection|model|db|mongoose)\\.(?:find|findOne|findById|updateOne|updateMany|deleteOne|deleteMany|aggregate)\\s*\\("
+      description: "MongoDB collection/model query call"
+    - pattern: "req\\.(?:body|query|params)"
+      description: "User-controlled request input referenced in file"
+    - pattern: "\\$where|\\[\\s*req\\.|\\{\\s*\\[req\\.|sanitize|escapeRegExp|joi\\.validate|zod\\.parse|yup\\.validate"
+      negate: true
+      description: "No $where operator risk or input validation/sanitization found"
+description: >
+  Detects MongoDB query calls (find, findOne, updateOne, etc.) in files
+  that also reference user-controlled input (req.body, req.query,
+  req.params) without apparent input validation (Joi, Zod, Yup) or
+  sanitization. False-positive surface is medium: Mongoose models with
+  strict schema validation provide implicit type safety, but this rule
+  cannot verify schema enforcement at the file level.
+
+  NoSQL injection in MongoDB typically occurs when user-supplied objects
+  are passed directly as query filters, allowing operators like $gt, $ne,
+  $regex, or $where to bypass intended query logic (e.g.,
+  { password: { $gt: '' } } matching any non-empty password).
+remediation: "Validate and sanitize request body fields before using them as MongoDB query parameters. Use Mongoose schema types to enforce primitive types (String, Number) which reject object operators. Use a validation library (Joi, Zod) to whitelist expected fields."
+ai_guidance:
+  watch_for:
+    - "Mongoose models with strict schema enforcement (String, Number field types) provide implicit protection against operator injection and are a common false-positive source."
+    - "Destructuring specific fields from req.body (const { email } = req.body) reduces but does not eliminate NoSQL injection risk if the field itself is an object."
+    - "The $where operator specifically enables JavaScript execution on the server and is the highest-risk pattern."
+  references:
+    - title: "OWASP Testing Guide - NoSQL Injection"
+      url: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.6-Testing_for_NoSQL_Injection"
+    - title: "OWASP Top 10:2021 A03 - Injection"
+      url: "https://owasp.org/Top10/A03_2021-Injection/"
+  related_rule_ids: ["sql-injection-js-001"]
+test_cases:
+  - type: true_positive
+    fixture: "tp.ts"
+    description: "MongoDB findOne with req.body passed directly as filter"
+    code: |
+      app.post('/login', async (req, res) => {
+        const user = await User.findOne({ email: req.body.email, password: req.body.password });
+        if (!user) return res.status(401).json({ error: 'Invalid' });
+        res.json({ token: generateToken(user) });
+      });
+  - type: true_negative
+    fixture: "tn.ts"
+    description: "Validated input with Joi before MongoDB query"
+    code: |
+      const schema = Joi.object({ email: Joi.string().email().required(), password: Joi.string().required() });
+      app.post('/login', async (req, res) => {
+        const { error, value } = schema.validate(req.body);
+        if (error) return res.status(400).json({ error: error.message });
+        const user = await User.findOne({ email: value.email, password: value.password });
+        res.json({ token: generateToken(user) });
+      });

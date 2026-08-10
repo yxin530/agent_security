@@ -1,0 +1,75 @@
+id: command-injection-py-001
+title: "Command Injection via os.system or subprocess with User Input (Python)"
+severity: high
+category: injection
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+  cwe:
+    - CWE-78
+detection:
+  file_patterns: ["**/*.py"]
+  extensions: [".py"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "os\\.system\\s*\\(|subprocess\\.(?:run|call|Popen|check_output)\\s*\\("
+      description: "Use of Python OS command execution primitive"
+    - pattern: "request\\.(?:args|form|json|data|values)|input\\(|sys\\.argv"
+      description: "User-controlled input reference present in file"
+    - pattern: "shell\\s*=\\s*False|shlex\\.split|shlex\\.quote|allowedCommands|subprocess\\.run\\s*\\(\\s*\\["
+      negate: true
+      description: "No safe execution pattern found (shell=False, shlex escaping, or allowlist)"
+description: >
+  Detects Python OS command execution calls (os.system, subprocess.run,
+  subprocess.call, subprocess.Popen, subprocess.check_output) in files
+  that also reference user-controlled input (request.args, request.form,
+  request.json, sys.argv) without a safe execution pattern (shell=False
+  with an argument list, shlex.quote escaping, or an allowlist).
+  False-positive surface is medium: web handler files that run system
+  commands with hardcoded arguments but also read from request context
+  elsewhere may trigger this rule.
+
+  When shell=True is passed to subprocess functions, user input in the
+  command string can inject shell metacharacters to execute arbitrary OS
+  commands.
+remediation: "Use subprocess.run() with shell=False and pass command arguments as a list: subprocess.run(['convert', filename, 'output.pdf'], shell=False). Never use os.system() with user input. If string commands are unavoidable, use shlex.quote() on each user-supplied token."
+ai_guidance:
+  watch_for:
+    - "subprocess.run() called with shell=False and a hardcoded list (not user-controlled) is safe and may still trigger if request.args is referenced elsewhere in the file."
+    - "Django, Flask, and FastAPI view functions that call system utilities with developer-controlled arguments are expected false-positive sources."
+    - "os.system() has no safe mode — any user input passed to it is vulnerable regardless of escaping attempts."
+  references:
+    - title: "OWASP Top 10:2021 A03 - Injection"
+      url: "https://owasp.org/Top10/A03_2021-Injection/"
+    - title: "Python subprocess — Security Considerations"
+      url: "https://docs.python.org/3/library/subprocess.html#security-considerations"
+  related_rule_ids: ["sql-injection-py-001", "command-injection-js-001"]
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.py"
+    description: "os.system with user-supplied filename from Flask request"
+    code: |
+      from flask import request
+      import os
+      @app.post('/convert')
+      def convert():
+          filename = request.form['filename']
+          os.system(f"convert {filename} output.pdf")
+          return "done"
+  - type: true_negative
+    fixture: "safe.py"
+    description: "subprocess.run with shell=False and argument list"
+    code: |
+      from flask import request
+      import subprocess
+      ALLOWED = ['report.docx', 'invoice.docx']
+      @app.post('/convert')
+      def convert():
+          filename = request.form['filename']
+          if filename not in ALLOWED:
+              return 'forbidden', 403
+          subprocess.run(['convert', filename, 'output.pdf'], shell=False)
+          return "done"

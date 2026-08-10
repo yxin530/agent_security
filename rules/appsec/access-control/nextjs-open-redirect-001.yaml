@@ -1,0 +1,68 @@
+id: nextjs-open-redirect-001
+title: "Open Redirect via Unvalidated URL in Next.js Router or redirect()"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A01:2021
+  cwe:
+    - CWE-601
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+  extensions: [".js", ".ts", ".jsx", ".tsx"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "(?:router\\.push|router\\.replace|redirect)\\s*\\(\\s*(?:req\\.query|searchParams\\.get|req\\.body|params\\.)"
+      description: "Next.js router.push/replace or redirect() called with request-derived value"
+    - pattern: "startsWith\\(['\"]https?://|isAllowed|allowedRedirects|validateUrl|allowedDomains|new URL"
+      negate: true
+      description: "No URL validation or allowlist check found"
+description: >
+  Detects Next.js redirect calls (router.push, router.replace in Pages
+  Router; redirect() in App Router Server Actions or Route Handlers) that
+  use a URL sourced from request parameters (req.query, searchParams.get,
+  req.body, params.*) without an apparent URL validation or allowlist check.
+  False-positive surface is medium: some redirects are internal paths (not
+  full URLs) and may be safe without validation.
+
+  An open redirect allows an attacker to craft a link to a trusted domain
+  that silently forwards the user to a malicious site, commonly used in
+  phishing attacks.
+remediation: "Validate the redirect target against an allowlist of permitted domains or paths. For internal-only redirects, ensure the value starts with '/' and does not contain '://' to prevent off-site redirects."
+ai_guidance:
+  watch_for:
+    - "Redirects to relative paths (starting with '/') are generally safe and are a common false-positive source for this rule."
+    - "The redirect target may be pre-validated in middleware or a utility function not visible in this file."
+    - "next/router's push() and App Router's redirect() are both in scope for this rule."
+  references:
+    - title: "OWASP Unvalidated Redirects and Forwards"
+      url: "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html"
+    - title: "OWASP Top 10:2021 A01 - Broken Access Control"
+      url: "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
+    - title: "Next.js redirect() function"
+      url: "https://nextjs.org/docs/app/api-reference/functions/redirect"
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "tp.ts"
+    description: "App Router Server Action redirects to user-supplied URL"
+    code: |
+      import { redirect } from 'next/navigation';
+      export async function POST(request: Request) {
+        const { url } = await request.json();
+        redirect(url);
+      }
+  - type: true_negative
+    fixture: "tn.ts"
+    description: "Redirect with allowlist validation"
+    code: |
+      import { redirect } from 'next/navigation';
+      const ALLOWED = ['https://example.com', 'https://docs.example.com'];
+      export async function POST(request: Request) {
+        const { url } = await request.json();
+        if (!ALLOWED.includes(url)) redirect('/');
+        redirect(url);
+      }

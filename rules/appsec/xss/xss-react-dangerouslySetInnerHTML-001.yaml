@@ -1,0 +1,64 @@
+id: xss-react-dangerouslySetInnerHTML-001
+title: "React dangerouslySetInnerHTML Without Sanitization"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+  cwe:
+    - CWE-79
+  atlas: "AML.T0048"
+detection:
+  file_patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+  extensions: [".js", ".ts", ".jsx", ".tsx"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "dangerouslySetInnerHTML\\s*=\\s*\\{\\{?\\s*__html\\s*:"
+      description: "dangerouslySetInnerHTML usage found"
+    - pattern: "DOMPurify\\.sanitize|sanitizeHtml|escapeHtml|dompurify"
+      flags: "i"
+      negate: true
+      description: "No sanitization call found in the file"
+description: >
+  Detects React components that use dangerouslySetInnerHTML without an
+  apparent call to a sanitization library (e.g. DOMPurify.sanitize) in
+  the same file. The false-positive surface is medium: sanitization may
+  occur in a parent component or utility function not visible in this file.
+
+  dangerouslySetInnerHTML bypasses React's built-in XSS escaping and
+  directly injects raw HTML into the DOM. Without sanitization of the
+  HTML string, any user-controlled content passed as __html can execute
+  arbitrary scripts. Template engines with built-in escaping or
+  server-side rendering with pre-sanitized content are known
+  false-positive sources.
+remediation: "Always pass HTML through DOMPurify.sanitize() or an equivalent library before assigning it to dangerouslySetInnerHTML. Example: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userContent) }}"
+ai_guidance:
+  watch_for:
+    - "Template engines or markdown processors that auto-escape output before it reaches this prop are a known false-positive source."
+    - "DOMPurify usage in a parent component or utility layer may not appear in this file but would still sanitize the content."
+    - "Static string literals passed as __html (not user-controlled) are safe and may still trigger this rule."
+  references:
+    - title: "React: dangerouslySetInnerHTML"
+      url: "https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html"
+    - title: "OWASP Top 10:2021 A03 - Injection"
+      url: "https://owasp.org/Top10/A03_2021-Injection/"
+  related_rule_ids: ["xss-innerHTML-001", "xss-reflected-js-001"]
+test_cases:
+  - type: true_positive
+    fixture: "tp.jsx"
+    description: "dangerouslySetInnerHTML with unsanitized user content"
+    code: |
+      function Comment({ userContent }) {
+        return <div dangerouslySetInnerHTML={{ __html: userContent }} />;
+      }
+  - type: true_negative
+    fixture: "tn.jsx"
+    description: "dangerouslySetInnerHTML with DOMPurify sanitization"
+    code: |
+      import DOMPurify from 'dompurify';
+      function Comment({ userContent }) {
+        return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userContent) }} />;
+      }

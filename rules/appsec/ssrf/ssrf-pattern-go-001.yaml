@@ -1,0 +1,77 @@
+id: ssrf-pattern-go-001
+title: "Server-Side Request Forgery (SSRF) via User-Controlled URL (Go)"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A10:2021
+  cwe:
+    - CWE-918
+detection:
+  file_patterns: ["**/*.go"]
+  extensions: [".go"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "http\\.Get\\s*\\(|http\\.Post\\s*\\(|http\\.NewRequest\\s*\\(|http\\.DefaultClient\\.Do\\s*\\("
+      description: "Go net/http client call"
+    - pattern: "r\\.URL\\.Query\\(\\)|r\\.FormValue\\s*\\(|r\\.URL\\.Path|r\\.Body"
+      description: "User-controlled input from Go http.Request"
+    - pattern: "allowedHosts|allowedDomains|url\\.Parse|strings\\.HasPrefix.*https://|net\\.LookupHost|isPrivateIP"
+      negate: true
+      description: "No URL validation or allowlist check found"
+description: >
+  Detects Go net/http client calls (http.Get, http.Post, http.NewRequest,
+  http.DefaultClient.Do) in files that also reference user-controlled input
+  from the http.Request (r.URL.Query(), r.FormValue(), r.URL.Path, r.Body)
+  without an apparent URL validation or allowlist check.
+  False-positive surface is medium: Go server handlers that make outbound
+  HTTP calls to hardcoded services but also read from the request object
+  are common and may trigger this rule.
+
+  This is a narrow-scope heuristic — not all dynamic URLs are SSRF risks,
+  but user-supplied full URLs without an allowlist check are a recognized
+  SSRF trigger.
+remediation: "Parse the user-supplied URL with url.Parse(), validate the scheme (https only) and hostname against an allowlist. Reject requests to private IP ranges (10.x.x.x, 172.16.x.x, 192.168.x.x, 169.254.x.x) using net.ParseIP() checks."
+ai_guidance:
+  watch_for:
+    - "Go handlers that call external services with hardcoded URLs but also read from request context elsewhere in the file are a common false-positive source."
+    - "Go's url.Parse() followed by a scheme and host allowlist check is a safe pattern that suppresses this finding."
+    - "Not all dynamic URL components indicate SSRF — path or query parameters appended to a trusted base URL with proper encoding may be safe."
+  references:
+    - title: "OWASP Top 10:2021 A10 - Server-Side Request Forgery"
+      url: "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/"
+    - title: "OWASP SSRF Prevention Cheat Sheet"
+      url: "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+  related_rule_ids: ["ssrf-pattern-js-001", "ssrf-pattern-py-001"]
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.go"
+    description: "http.Get with URL from query parameter"
+    code: |
+      func fetchHandler(w http.ResponseWriter, r *http.Request) {
+          targetURL := r.URL.Query().Get("url")
+          resp, err := http.Get(targetURL)
+          if err != nil {
+              http.Error(w, err.Error(), 500)
+              return
+          }
+          io.Copy(w, resp.Body)
+      }
+  - type: true_negative
+    fixture: "safe.go"
+    description: "URL validated against allowlist before http.Get"
+    code: |
+      var allowedHosts = map[string]bool{"api.example.com": true}
+      func fetchHandler(w http.ResponseWriter, r *http.Request) {
+          rawURL := r.URL.Query().Get("url")
+          parsed, err := url.Parse(rawURL)
+          if err != nil || !allowedHosts[parsed.Hostname()] {
+              http.Error(w, "forbidden", 403)
+              return
+          }
+          resp, _ := http.Get(rawURL)
+          io.Copy(w, resp.Body)
+      }

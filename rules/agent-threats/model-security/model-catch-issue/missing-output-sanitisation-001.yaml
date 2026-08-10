@@ -9,6 +9,7 @@ maps_to:
     - A03:2021
   owasp_llm:
     - LLM05:2025
+  atlas: "AML.T0048"
   cwe:
     - CWE-79
     - CWE-89

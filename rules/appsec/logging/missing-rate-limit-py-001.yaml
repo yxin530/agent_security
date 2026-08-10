@@ -1,0 +1,72 @@
+id: missing-rate-limit-py-001
+title: "Missing Rate Limiting on Flask/FastAPI HTTP Endpoint (Python)"
+severity: medium
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A04:2021
+  cwe:
+    - CWE-770
+detection:
+  file_patterns: ["**/*.py"]
+  extensions: [".py"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "@(?:app|router|blueprint)\\.(?:route|get|post|put|delete|patch)\\s*\\("
+      description: "Flask or FastAPI route decorator"
+    - pattern: "@limiter\\.limit|@slowapi\\.limit|@ratelimit|flask_limiter|slowapi|Limiter\\("
+      flags: "i"
+      negate: true
+      description: "No Flask-Limiter, slowapi, or rate limiting decorator found"
+description: >
+  Detects Flask or FastAPI route handler functions that have no apparent
+  rate limiting decorator (Flask-Limiter's @limiter.limit, slowapi's
+  @limiter.limit). False-positive surface is high: rate limiting is often
+  applied at a reverse proxy (nginx, Caddy), API gateway (AWS API GW,
+  Kong), or middleware layer not visible in the route file.
+
+  Missing rate limiting allows brute-force credential attacks, API
+  resource exhaustion, or abuse of expensive operations (LLM calls, email
+  sending) at no cost to the attacker. This rule is a review signal —
+  confirm infrastructure-level controls before treating this as a finding.
+remediation: "Use Flask-Limiter (pip install Flask-Limiter) with @limiter.limit('5 per minute') on sensitive routes, or slowapi for FastAPI. For production, combine application-level limiting with nginx rate_limit_zone or API gateway throttling."
+ai_guidance:
+  watch_for:
+    - "nginx rate_limit_zone, AWS API Gateway throttling, or Cloudflare rate limiting at the infrastructure layer will not appear in the Python route file."
+    - "FastAPI's BackgroundTasks and middleware-based rate limiting (via a Starlette middleware class) are valid alternatives not detectable at the decorator level."
+    - "Public read-only routes (GET /health, GET /version) may not need rate limiting."
+  references:
+    - title: "OWASP Top 10:2021 A04 - Insecure Design"
+      url: "https://owasp.org/Top10/A04_2021-Insecure_Design/"
+    - title: "Flask-Limiter Documentation"
+      url: "https://flask-limiter.readthedocs.io/"
+    - title: "slowapi (FastAPI Rate Limiting)"
+      url: "https://slowapi.readthedocs.io/"
+  related_rule_ids: []
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.py"
+    description: "Flask POST endpoint with no rate limiting"
+    code: |
+      from flask import Flask, request
+      app = Flask(__name__)
+      @app.route('/login', methods=['POST'])
+      def login():
+          data = request.get_json()
+          return auth_service.authenticate(data['email'], data['password'])
+  - type: true_negative
+    fixture: "safe.py"
+    description: "Flask POST endpoint with Flask-Limiter rate limit"
+    code: |
+      from flask import Flask, request
+      from flask_limiter import Limiter
+      app = Flask(__name__)
+      limiter = Limiter(app)
+      @app.route('/login', methods=['POST'])
+      @limiter.limit('5 per minute')
+      def login():
+          data = request.get_json()
+          return auth_service.authenticate(data['email'], data['password'])

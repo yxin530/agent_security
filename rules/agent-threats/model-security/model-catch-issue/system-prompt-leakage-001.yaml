@@ -9,6 +9,7 @@ maps_to:
     - A05:2021
   owasp_llm:
     - LLM07:2025
+  atlas: "AML.T0046"
   cwe:
     - CWE-200
 detection:

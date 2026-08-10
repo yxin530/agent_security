@@ -1,0 +1,62 @@
+id: pii-in-logs-java-001
+title: "PII Logged in Plaintext (Java)"
+severity: high
+category: logging
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A09:2021
+  pdpa: "Section 9, Personal Data Protection Act 2010 (as amended)"
+detection:
+  file_patterns: ["**/*.java"]
+  extensions: [".java"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: "(?:log(?:ger)?|LOG)\\.(?:info|debug|warn|error|trace)\\s*\\([^)]*[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
+      description: "Java logger call with an email address pattern"
+    - pattern: "(?:log(?:ger)?|LOG)\\.(?:info|debug|warn|error|trace)\\s*\\([^)]*\\d{6}-\\d{2}-\\d{4}"
+      description: "Java logger call with a Malaysian IC number pattern"
+    - pattern: "(?:log(?:ger)?|LOG)\\.(?:info|debug|warn|error|trace)\\s*\\([^)]*(?:\\+?60|0)[1-9]\\d{7,9}"
+      description: "Java logger call with a Malaysian phone number pattern"
+    - pattern: "(?:log(?:ger)?|LOG)\\.(?:info|debug|warn|error|trace)\\s*\\([^)]*\\b(?:password|token|nric|ic_no|secret|credential)\\b"
+      flags: "i"
+      description: "Java logger call with a PII-indicative variable name"
+    - pattern: "System\\.out\\.(?:print|println)\\s*\\([^)]*\\b(?:password|token|nric|ic_no|email|secret)\\b"
+      flags: "i"
+      description: "System.out.println with a PII-indicative variable name"
+description: >
+  Detects Java logging calls (SLF4J, Log4j, java.util.logging via
+  logger.info/debug/warn/error/trace) and System.out.println that may log
+  personal data in plaintext, including email addresses, Malaysian IC
+  numbers, phone numbers, or variables with PII-indicative names.
+  False-positive surface is medium: variable names matching PII patterns
+  may not contain actual PII values.
+
+  Logging PII in plaintext violates the PDPA Section 9 Security Principle
+  and common log management standards. The 2024 Amendment Act extended
+  Section 9 to directly bind data processors effective 1 April 2025.
+remediation: "Redact or mask PII before logging. Use a structured logger with a data-scrubbing filter or a custom PII-aware log appender. Never log raw email addresses, IC numbers, phone numbers, passwords, or tokens."
+ai_guidance:
+  watch_for:
+    - "Variable names matching PII patterns (e.g. 'icNo', 'email') may be used for non-PII purposes and produce false positives."
+    - "Logging frameworks with MDC (Mapped Diagnostic Context) filters or custom appenders may redact PII before output, not visible at the call site."
+    - "Test and debug log statements in non-production code paths may intentionally log PII for troubleshooting."
+  references:
+    - title: "OWASP Top 10:2021 A09 - Security Logging and Monitoring Failures"
+      url: "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/"
+    - title: "PDPA Section 9 — Security Principle"
+      url: "https://www.pdp.gov.my/"
+  related_rule_ids: ["pii-in-logs-js-001", "pii-in-logs-go-001", "pii-in-logs-cs-001"]
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.java"
+    description: "Logger.info call with email address"
+    code: |
+      logger.info("User logged in: " + user.getEmail());
+  - type: true_negative
+    fixture: "safe.java"
+    description: "Logger.info call with only user ID"
+    code: |
+      logger.info("User logged in: userId={}", user.getId());

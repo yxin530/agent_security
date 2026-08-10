@@ -1,0 +1,64 @@
+id: insecure-random-java-001
+title: "Insecure Randomness via java.util.Random for Security-Sensitive Values (Java)"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A02:2021
+  cwe:
+    - CWE-338
+detection:
+  file_patterns: ["**/*.java"]
+  extensions: [".java"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: "new\\s+Random\\s*\\(\\)"
+      description: "java.util.Random instantiation (non-cryptographic)"
+    - pattern: "Math\\.random\\s*\\(\\)"
+      description: "Math.random() (non-cryptographic)"
+    - pattern: "(?:new\\s+Random|Math\\.random).*(?:token|session|secret|nonce|salt|csrf|key|password)"
+      flags: "i"
+      description: "Non-cryptographic random used near a security-sensitive variable name"
+description: >
+  Detects use of java.util.Random (new Random()) or Math.random() in
+  Java code, particularly when the result is assigned to or used near
+  security-sensitive variable names (token, session, secret, nonce, salt,
+  csrf, key, password). java.util.Random is a predictable pseudo-random
+  number generator (PRNG) and must not be used for security-sensitive
+  operations. False-positive surface is medium: new Random() used for
+  non-security purposes (shuffle, game logic, load balancing) will also
+  match.
+
+  Note: Math.random() and java.util.Random use the same underlying
+  algorithm and are both predictable. Use java.security.SecureRandom
+  for all security-sensitive random value generation.
+remediation: "Replace java.util.Random with java.security.SecureRandom: SecureRandom sr = new SecureRandom(); byte[] token = new byte[32]; sr.nextBytes(token). For token strings, encode with Base64.getUrlEncoder().encodeToString(token)."
+ai_guidance:
+  watch_for:
+    - "java.util.Random used for non-security purposes (shuffling lists, game randomness, load balancing, test data generation) is acceptable and is a common false-positive source."
+    - "ThreadLocalRandom is also a non-cryptographic PRNG and should not be used for security-sensitive values."
+    - "java.security.SecureRandom is the correct cryptographically secure replacement."
+  references:
+    - title: "OWASP Top 10:2021 A02 - Cryptographic Failures"
+      url: "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/"
+    - title: "Java SecureRandom Documentation"
+      url: "https://docs.oracle.com/en/java/docs/api/java.base/java/security/SecureRandom.html"
+  related_rule_ids: ["insecure-random-001", "weak-cipher-py-001"]
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.java"
+    description: "java.util.Random used for session token generation"
+    code: |
+      Random rng = new Random();
+      String sessionToken = Long.toHexString(rng.nextLong());
+  - type: true_negative
+    fixture: "safe.java"
+    description: "SecureRandom used for session token generation"
+    code: |
+      SecureRandom sr = new SecureRandom();
+      byte[] tokenBytes = new byte[32];
+      sr.nextBytes(tokenBytes);
+      String sessionToken = Base64.getUrlEncoder().encodeToString(tokenBytes);

@@ -6,7 +6,21 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
-Last updated: reflects v0.18 (PDPA Completeness).
+Last updated: reflects v0.19 (React/Next.js Coverage, Language Gap-Fill, ATLAS Backfill, CONTRIBUTING Files).
+
+---
+
+## v0.19 Additions (React/Next.js Coverage, Language Gap-Fill, ATLAS Backfill, CONTRIBUTING Files)
+
+| Item | Status | Notes |
+|---|---|---|
+| Community Files (Req 154) | implemented | Created `CONTRIBUTING.md` and template `CONTRIBUTORS.md`. (Contributors file removed post-commit at user request). |
+| React/Next.js Rules (Req 143-147) | implemented | Created 5 React/Next.js rules for XSS, SQLi, Auth, Open Redirect, Exposed Env. |
+| Language Gap-Fill (Req 148-153) | implemented | Created 11 new language variants for Injection, XSS, Logging, SSRF, Crypto, Rate Limiting. |
+| Bonus Rules (Req 154b-154c) | implemented | Created `nosql-injection-js-001` and rate limiting rules for Java/Python. |
+| ATLAS Backfill (Req 155) | implemented | Backfilled `maps_to.atlas` for `missing-output-sanitisation-001` and `system-prompt-leakage-001`. |
+| Core Docs Updates | implemented | Updated `mitre-atlas.md`, `architecture.md`, `requirements.md`, and `agent.md`. |
+| Overclaiming-Avoidance (Req 156) | implemented | Severity capped for high-FP rules; explicitly noted FP surfaces in descriptions. |
 
 ---
 

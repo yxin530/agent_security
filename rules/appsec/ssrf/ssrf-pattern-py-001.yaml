@@ -1,0 +1,76 @@
+id: ssrf-pattern-py-001
+title: "Server-Side Request Forgery (SSRF) via User-Controlled URL (Python)"
+severity: high
+category: appsec
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A10:2021
+  cwe:
+    - CWE-918
+detection:
+  file_patterns: ["**/*.py"]
+  extensions: [".py"]
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: "requests\\.(?:get|post|put|delete|patch|head|request)\\s*\\(|urllib\\.request\\.urlopen\\s*\\(|httpx\\.(?:get|post|put|delete|AsyncClient)\\s*\\("
+      description: "Python HTTP client call (requests, urllib, httpx)"
+    - pattern: "request\\.args\\.|request\\.form\\.|request\\.json\\.|request\\.values\\.|request\\.data\\b"
+      description: "User-controlled input from Flask/Django/FastAPI request"
+    - pattern: "allowedHosts|allowedDomains|isAllowed|validateUrl|urlparse|netloc.*in\\s|ipaddress\\.ip_address"
+      negate: true
+      description: "No URL validation or allowlist check found"
+description: >
+  Detects Python HTTP client calls (requests, urllib, httpx) in files
+  that also reference user-controlled input (request.args, request.form,
+  request.json) without an apparent URL validation or allowlist check.
+  False-positive surface is medium: server-side HTTP calls with hardcoded
+  URLs that happen to share a file with request handling are a common
+  false-positive source.
+
+  This is a narrow-scope heuristic — not all dynamic URLs are SSRF risks,
+  but user-supplied full URLs passed directly to requests.get() without
+  an allowlist check are a recognized SSRF trigger. Attackers can use SSRF
+  to reach internal services, cloud metadata endpoints (169.254.169.254),
+  or other servers behind the firewall.
+remediation: "Validate the URL against an allowlist of permitted domains using urllib.parse.urlparse() and check the netloc component. Block private IP ranges using the ipaddress module. Never pass user-supplied URLs directly to requests.get() or equivalent."
+ai_guidance:
+  watch_for:
+    - "Server-side HTTP calls to hardcoded external APIs (payment processors, third-party services) that happen to share a file with request handling are a common false-positive."
+    - "URL validation using urlparse().netloc membership check against a whitelist is a safe pattern that should suppress this finding."
+    - "Not all dynamic URLs are SSRF risks — server-generated URLs that include user-provided search terms or IDs (not full URLs) may be safe with proper encoding."
+  references:
+    - title: "OWASP Top 10:2021 A10 - Server-Side Request Forgery"
+      url: "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/"
+    - title: "OWASP SSRF Prevention Cheat Sheet"
+      url: "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+  related_rule_ids: ["ssrf-pattern-js-001", "ssrf-pattern-go-001"]
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.py"
+    description: "requests.get with URL from query parameter"
+    code: |
+      from flask import request
+      import requests
+      @app.get('/fetch')
+      def fetch():
+          url = request.args.get('url')
+          resp = requests.get(url)
+          return resp.text
+  - type: true_negative
+    fixture: "safe.py"
+    description: "URL validated against allowlist before request"
+    code: |
+      from flask import request
+      import requests
+      from urllib.parse import urlparse
+      ALLOWED = {'api.example.com', 'cdn.example.com'}
+      @app.get('/fetch')
+      def fetch():
+          url = request.args.get('url')
+          if urlparse(url).netloc not in ALLOWED:
+              return 'forbidden', 403
+          resp = requests.get(url)
+          return resp.text

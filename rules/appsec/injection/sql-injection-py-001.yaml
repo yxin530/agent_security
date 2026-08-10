@@ -1,0 +1,60 @@
+id: sql-injection-py-001
+title: "SQL Injection via String Concatenation (Python)"
+severity: high
+category: injection
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A03:2021
+  cwe:
+    - CWE-89
+detection:
+  file_patterns: ["**/*.py"]
+  extensions: [".py"]
+  scope: line
+  logic: OR
+  conditions:
+    - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\\s+.+['\"]\\s*\\+\\s*[a-zA-Z_]\\w*"
+      flags: "i"
+      description: "SQL keyword followed by string concatenation with a variable using +"
+    - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\\s+[^'\"]*%\\s*[a-zA-Z_\\(]"
+      flags: "i"
+      description: "SQL keyword with old-style % string formatting"
+    - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)[^'\"]*f['\"].*(\\{[a-zA-Z_]\\w*\\})"
+      flags: "i"
+      description: "SQL keyword in an f-string with variable interpolation"
+description: >
+  Detects raw SQL string construction in Python using concatenation (+),
+  old-style % formatting, or f-string interpolation directly into a SQL
+  query. All three patterns can introduce SQL injection when the
+  interpolated value is user-controlled. Use parameterized queries or
+  an ORM (SQLAlchemy, Django ORM) instead.
+
+  False-positive surface is low for f-strings and % patterns; slightly
+  higher for + concatenation where the concatenated value may be a
+  hardcoded constant.
+remediation: "Use parameterized queries: cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,)) or SQLAlchemy's text() with bindparams. Never interpolate user input directly into SQL strings."
+ai_guidance:
+  watch_for:
+    - "SQL built through helper functions or query builders that obscure user input from the line-level regex."
+    - "Django ORM (User.objects.filter()) and SQLAlchemy ORM queries are safe and will not trigger this rule."
+    - "String concatenation of hardcoded SQL fragments (column names, table names defined in code) without user input may produce false positives."
+  references:
+    - title: "OWASP Top 10:2021 A03 - Injection"
+      url: "https://owasp.org/Top10/A03_2021-Injection/"
+    - title: "Python DB-API Parameterized Queries"
+      url: "https://peps.python.org/pep-0249/"
+  related_rule_ids: ["sql-injection-js-001"]
+test_cases:
+  - type: true_positive
+    fixture: "vulnerable.py"
+    description: "SQL f-string interpolation with variable"
+    code: |
+      query = f"SELECT * FROM users WHERE id = {user_id}"
+      cursor.execute(query)
+  - type: true_negative
+    fixture: "safe.py"
+    description: "Parameterized query using %s placeholder"
+    code: |
+      cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
