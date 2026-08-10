@@ -19,7 +19,7 @@ Last updated: reflects v0.19 (React/Next.js Coverage, Language Gap-Fill, ATLAS B
 | Language Gap-Fill (Req 148-153) | implemented | Created 11 new language variants for Injection, XSS, Logging, SSRF, Crypto, Rate Limiting. |
 | Bonus Rules (Req 154b-154c) | implemented | Created `nosql-injection-js-001` and rate limiting rules for Java/Python. |
 | ATLAS Backfill (Req 155) | implemented | Backfilled `maps_to.atlas` for `missing-output-sanitisation-001` and `system-prompt-leakage-001`. |
-| Core Docs Updates | implemented | Updated `mitre-atlas.md`, `architecture.md`, `requirements.md`, and `agent.md`. |
+| Core Docs Updates | implemented | Updated `mitre-atlas.md`. |
 | Overclaiming-Avoidance (Req 156) | implemented | Severity capped for high-FP rules; explicitly noted FP surfaces in descriptions. |
 
 ---
