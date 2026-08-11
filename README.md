@@ -83,10 +83,6 @@ Agent-threat coverage tiers are documented in [coverage-status.md](docs/agent-th
 
 Rules may include structured AI Guidance for related manual review patterns. The remediation skill presents that guidance separately from scanner-verified findings.
 
-The v0.4 detectable additions include graph-query injection, tool-output injection, indirect and system-prompt injection, indirect tool injection, fine-tuning source verification, LLM error handling, unrestricted code execution, and unthrottled model output. Other taxonomy entries remain explicitly documented-only.
-
-The v0.15 additions expand coverage to include dependency confusion, missing LLM output validation, missing breach notification, session fixation, insecure auto-updates, and darknet C2 endpoints. Runtime monitoring now flags heuristic PII leaks in LLM output.
-
 MCP-specific static checks include filesystem and shell access, argument validation, authorization, destructive-action confirmation, excessive permissions, output bounds, SSRF, sensitive resources, unsafe instructions, audit logging, rate limiting, and tool-description prompt injection. The MCP server is hardened with client authorization (`X_AGENT_ID`/`MCP_CLIENT_ID`) and scan rate limiting.
 
 The v0.16, v0.17, and v0.18 additions expand coverage to include OWASP Web Top 10 completeness (access control, cryptography, XSS, SSRF), OWASP LLM completeness (output sanitization, system prompt leakage), and PDPA heuristic compliance checks.
