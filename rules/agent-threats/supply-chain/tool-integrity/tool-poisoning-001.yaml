@@ -20,7 +20,7 @@ detection:
   scope: line
   logic: AND
   conditions:
-    - pattern: (registerTool|addTool|server\.tool|addFunction|registerFunction|tool\.register|register_tool|add_tool)\s*\(.*?(req\.|body\.|params\.|query\.|userInput|argv\[|process\.argv|fetch\s*\(|http|untrusted|dynamic)
+    - pattern: (registerTool|addTool|server\.tool|addFunction|registerFunction|tool\.register|register_tool|add_tool)\s*\(.*?(req\.|body\.|params\.|params\s*\[|query\.|request\.body|userInput|argv\[|process\.argv|fetch\s*\(|http|untrusted|dynamic)
       flags: i
       description: Tool registration call references an untrusted or runtime-provided source
     - pattern: (signature|checksum|approved|trusted|pinned|whitelist|allowlist|verified|hash|digest)

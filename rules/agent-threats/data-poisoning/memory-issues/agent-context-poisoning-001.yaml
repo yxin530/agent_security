@@ -20,7 +20,7 @@ detection:
   scope: line
   logic: AND
   conditions:
-    - pattern: (memory|context|memoryStore|contextStore|agentMemory|agent_memory|shortTermMemory|short_term_memory)\.(set|push|append|write|store|upsert|add|update)\s*\(.*?(req\.|body\.|params\.|query\.|userInput|argv\[|untrusted)
+    - pattern: (memory|context|memoryStore|contextStore|agentMemory|agent_memory|shortTermMemory|short_term_memory)\s*\.\s*(set|push|append|write|store|upsert|add|update)\s*\(.*?(req\.|body\.|params\.|query\.|request\.json|request\.form|userInput|argv\[|untrusted)
       flags: i
       description: Untrusted input written into an in-memory or context store
     - pattern: (sanitize|validate|verify|trusted|approved|signed|hash|checksum)

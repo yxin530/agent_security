@@ -38,8 +38,8 @@ remediation: |
     model_path = download_model(url, expected_hash="sha256:abcd...")
 ai_guidance:
   watch_for:
-    - Dynamic model loading where the model path is taken from an environment variable without a corresponding expected hash.
-    - `trust_remote_code=True` being set in Hugging Face Transformers without additional compensating controls.
+    - "Dynamic model loading where the model path is taken from an environment variable without a corresponding expected hash."
+    - "`trust_remote_code=True` being set in Hugging Face Transformers without additional compensating controls."
   references:
     - title: OWASP LLM03:2025 - Supply Chain Vulnerabilities
       url: https://genai.owasp.org/llmrisk/llm03-supply-chain-vulnerabilities/

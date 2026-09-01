@@ -20,10 +20,10 @@ detection:
   scope: file
   logic: AND
   conditions:
-    - pattern: (db\.|database\.|query\(|find\(|findOne\(|findAll\(|fetch\(|retrieve\(|getUser|getUserById|getRecord)\s*[^;]*?(email|phone|password|ssn|nric|dob|credit_card|passport|ic_number)
+    - pattern: (?:getUser|getUserById|getRecord|(?:db\.|database\.|query\(|find\(|findOne\(|find_one\(|findAll\(|fetch\(|retrieve\()[^;]*(email|phone|password|ssn|nric|dob|credit_card|passport|ic_number|_id|\bid\b))
       flags: i
       description: File retrieves a data record containing recognizable PII fields
-    - pattern: (messages|prompt|content|system|developer)\s*[\.\[\(=].*?(result|record|user|data|row|doc)
+    - pattern: (messages|prompt|content|system|developer|context)\s*[\.\[\(:=].*?(result|record|user|data|row|doc|profile)
       flags: i
       description: File pipes a retrieval result variable into a model message or prompt
     - pattern: (redact|mask|sanitize|minimize|anonymize|scrub|strip|filter)

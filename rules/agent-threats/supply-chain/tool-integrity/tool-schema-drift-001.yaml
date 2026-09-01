@@ -22,7 +22,7 @@ detection:
   scope: line
   logic: AND
   conditions:
-    - pattern: (loadToolSchema|updateToolSchema|loadSchema|updateSchema|tool_schema|toolSchema|schema\.load|schema_load|fetch.*schema|download.*schema|pull.*schema)
+    - pattern: (loadToolSchema|updateToolSchema|loadSchema|load_schema|updateSchema|tool_schema|toolSchema|schema\.load|schema_load|fetch.*schema|download.*schema|pull.*schema)
       flags: i
       description: Tool schema is loaded or updated from an external or dynamic source
     - pattern: (version|hash|checksum|signature|pin|approved|locked|verified|digest)

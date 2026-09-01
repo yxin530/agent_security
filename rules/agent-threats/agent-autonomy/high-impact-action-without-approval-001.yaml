@@ -20,7 +20,7 @@ detection:
   scope: file
   logic: AND
   conditions:
-    - pattern: (stripe|paypal|braintree|charge|payment|createCharge|processPayment|kubectl|helm\s|deploy\s|terraform\.apply|sendEmail|sendMessage|sendSms|deleteAccount|dropDatabase|deleteUser|createUser|resetPassword|updateAccount|updateRole|grantRole|revokeRole)
+    - pattern: (stripe|paypal|braintree|charge|payment|createCharge|processPayment|kubectl|helm\s|deploy\s|terraform\.apply|sendEmail|sendMessage|send_message|sendSms|deleteAccount|dropDatabase|deleteUser|createUser|resetPassword|updateAccount|updateRole|grantRole|revokeRole)
       flags: i
       description: File contains a high-impact agent-controlled action sink (payment, deployment, account, or external messaging)
     - pattern: (approved|approval|approvalGate|authorize|confirm|policy|guard|checkpoint|review|humanInLoop|human_in_the_loop|requiresApproval|requires_approval|await.*confirm)

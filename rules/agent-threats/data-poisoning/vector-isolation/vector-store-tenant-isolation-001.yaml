@@ -21,7 +21,7 @@ detection:
   scope: line
   logic: AND
   conditions:
-    - pattern: (vectorStore|qdrant|pinecone|weaviate|chroma|milvus|supabase|collection)\.(query|search|retrieve|similaritySearch|similarity_search|search_vectors|fetch)\s*\(
+    - pattern: (vectorStore|qdrant|pinecone|weaviate|chroma|milvus|supabase|collection)\s*\.\s*(query|search|retrieve|similaritySearch|similarity_search|search_vectors|fetch)\s*\(
       flags: i
       description: Matches a vector store query or search call
     - pattern: (tenantId|tenant_id|namespace|filter|where|acl|userId|user_id|orgId|org_id)

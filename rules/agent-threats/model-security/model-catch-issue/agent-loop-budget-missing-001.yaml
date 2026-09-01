@@ -21,7 +21,7 @@ detection:
   scope: line
   logic: AND
   conditions:
-    - pattern: (while|for)\s*\(.*(true|True|agent\.isRunning|1\s*==\s*1|loop|continue)\)
+    - pattern: (?:(while|for)\s*\([^\n]*?(true|True|agent\.isRunning|1\s*==\s*1|loop|continue)|while\s+(True|true)\s*:|for\s+.*\s+in\s+iter\s*\(\s*int\s*,\s*1\s*\))
       flags: i
       description: Detects an unbounded loop that drives agent orchestration
     - pattern: (maxSteps|max_steps|budget|maxIterations|max_iterations|stepLimit|step_limit|timeout|break)
