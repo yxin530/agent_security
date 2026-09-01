@@ -1,0 +1,75 @@
+id: tool-poisoning-001
+title: Tool Registered from Untrusted or Dynamic Source Without Integrity Check
+severity: high
+category: supply-chain
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A08:2021
+  owasp_llm:
+    - LLM03:2025
+  cwe:
+    - CWE-345
+    - CWE-346
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (registerTool|addTool|server\.tool|addFunction|registerFunction|tool\.register|register_tool|add_tool)\s*\(.*?(req\.|body\.|params\.|query\.|userInput|argv\[|process\.argv|fetch\s*\(|http|untrusted|dynamic)
+      flags: i
+      description: Tool registration call references an untrusted or runtime-provided source
+    - pattern: (signature|checksum|approved|trusted|pinned|whitelist|allowlist|verified|hash|digest)
+      flags: i
+      negate: true
+      description: Negated — no visible integrity verification on the same line
+description: |
+  Detects tool registration or discovery calls that reference an untrusted, dynamic, or runtime-provided source (request body, user input, argv, HTTP fetch) without a visible integrity check (signature, checksum, whitelist, or approval) on the same line. Registering a tool definition from an untrusted source allows an adversary to substitute or poison the tool's behavior.
+  Distinct from tool-description-prompt-injection-001 (which detects injected content inside an existing tool's description field), tool-authentication rules (which detect missing authentication at tool invocation), and excessive-permission rules. This rule targets the registration trust boundary.
+remediation: |
+  Only register tools from a trusted, version-pinned, integrity-verified source:
+    // TypeScript
+    const def = await fetchToolDef('https://trusted-registry.internal/tools/search-v1');
+    assert(sha256(def) === EXPECTED_HASH, 'Tool definition checksum mismatch');
+    server.tool(def.name, def.schema, def.handler);
+    # Python
+    tool_def = load_tool_from_registry("search-v1", expected_hash=APPROVED_HASH)
+    register_tool(tool_def)
+ai_guidance:
+  watch_for:
+    - MCP server or plugin loaders that accept tool definitions from user-provided URLs or config files.
+    - Agent orchestration frameworks that dynamically load tool plugins from a shared directory writable by multiple services.
+    - Tool schemas deserialized from network responses or database rows without provenance metadata.
+  references:
+    - title: OWASP LLM03:2025 - Supply Chain Vulnerabilities
+      url: https://genai.owasp.org/llmrisk/llm03-supply-chain-vulnerabilities/
+    - title: OWASP A08:2021 - Software and Data Integrity Failures
+      url: https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/
+  related_rule_ids:
+    - tool-schema-drift-001
+    - tool-description-prompt-injection-001
+    - missing-tool-auth-001
+  reasoning_notes: Detects untrusted-source keywords on the registration call line. Supply-chain attacks that use trusted-looking variable names are not visible to this rule.
+detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if the untrusted source is loaded into a variable on a previous line, and false positives if the dynamic source has already been verified before this line.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Tool registered directly from request body without integrity check
+    code: 'server.tool(req.body.toolName, req.body.schema, req.body.handler);'
+  - type: true_negative
+    fixture: safe.ts
+    description: Tool registered from approved registry with hash verification
+    code: 'const def = await trustedRegistry.get("search-v1", { approved: true, hash: HASH }); server.tool(def.name, def.schema, def.handler);'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Python tool registered from HTTP fetch without checksum
+    code: 'tool_def = fetch("http://external.api/tools/latest"); register_tool(tool_def)'
+  - type: true_negative
+    fixture: safe.py
+    description: Python tool loaded from pinned registry with expected hash
+    code: 'tool_def = load_tool_from_registry("search-v1", expected_hash=APPROVED_HASH); register_tool(tool_def)'

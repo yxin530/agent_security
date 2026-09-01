@@ -1,0 +1,87 @@
+id: high-impact-action-without-approval-001
+title: High-Impact Agent Action Without Approval or Policy Guard
+severity: high
+category: agent-autonomy
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A01:2021
+  owasp_llm:
+    - LLM06:2025
+  cwe:
+    - CWE-306
+    - CWE-862
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: (stripe|paypal|braintree|charge|payment|createCharge|processPayment|kubectl|helm\s|deploy\s|terraform\.apply|sendEmail|sendMessage|sendSms|deleteAccount|dropDatabase|deleteUser|createUser|resetPassword|updateAccount|updateRole|grantRole|revokeRole)
+      flags: i
+      description: File contains a high-impact agent-controlled action sink (payment, deployment, account, or external messaging)
+    - pattern: (approved|approval|approvalGate|authorize|confirm|policy|guard|checkpoint|review|humanInLoop|human_in_the_loop|requiresApproval|requires_approval|await.*confirm)
+      flags: i
+      negate: true
+      description: Negated — no visible approval, policy, or human-in-the-loop boundary in the file
+description: |
+  Detects files where a model- or tool-controlled high-impact action sink (payment processing, deployment orchestration, account mutation, external messaging, or database destruction) is invoked without a visible approval gate, policy check, or human-in-the-loop boundary. An agent that can execute consequential actions without authorization creates financial, operational, or privacy risk.
+  Distinct from missing-destructive-action-confirmation-001, which targets delete/destroy operations with a confirm parameter. This rule covers payment, deployment, account-change, and external-message sinks that are not covered by that rule.
+  Read-only and reversible operations (GET requests, read-only queries, logging) are not in scope and appear as true-negative fixtures.
+  File-scope heuristic: the rule cannot trace approval state across module or process boundaries. A negative result means no recognizable approval keyword was found in the same file.
+remediation: |
+  Insert an explicit approval gate or policy check before every high-impact action:
+    // TypeScript
+    if (await approvalGate('charge', { amount, userId })) {
+      await stripe.charges.create({ amount, currency: 'usd', source: token });
+    }
+    # Python
+    if policy.requires_approval("deploy", env="production"):
+        approval = await get_human_approval(action="deploy", target=service)
+        if approval.granted:
+            kubectl_apply(manifest)
+  Never allow an agent to complete a consequential action in a single step without a trust boundary.
+ai_guidance:
+  watch_for:
+    - Agent tool handlers that accept payment or deployment commands from an LLM response without validating the action against a policy.
+    - Orchestration pipelines where a chained tool sequence can accumulate irreversible effects without a midpoint review step.
+    - External-message sinks (email, SMS, Slack) that the agent can invoke with user-controlled content without rate or approval control.
+  references:
+    - title: OWASP LLM06:2025 - Excessive Agency
+      url: https://genai.owasp.org/llmrisk/llm06-excessive-agency/
+    - title: OWASP A01:2021 - Broken Access Control
+      url: https://owasp.org/Top10/A01_2021-Broken_Access_Control/
+  related_rule_ids:
+    - missing-destructive-action-confirmation-001
+    - excessive-tool-permissions-001
+    - agent-loop-budget-missing-001
+  reasoning_notes: File-scope heuristic. The approval keyword list is not exhaustive. Custom approval frameworks not matching the recognized keywords may produce false negatives.
+detection_limitations: As a file-scope regex heuristic, this rule cannot verify that the approval path is always reached before the action. It may produce false negatives if approval is enforced in middleware or an imported module, and false positives if non-agent controlled invocations (e.g., manual admin scripts) are present in the same file.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Stripe charge executed by agent without approval gate
+    code: 'await stripe.charges.create({ amount: agentDecidedAmount, currency: "usd", source: token });'
+  - type: true_negative
+    fixture: safe.ts
+    description: Stripe charge preceded by an explicit approval gate
+    code: |
+      if (await approvalGate('charge', { amount, userId })) {
+        await stripe.charges.create({ amount, currency: 'usd', source: token });
+      }
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Kubernetes deployment triggered by agent without policy check
+    code: 'kubectl("apply", manifest=agent_manifest)'
+  - type: true_negative
+    fixture: safe.py
+    description: Deployment requires human approval and policy guard before execution
+    code: |
+      if policy.requires_approval("deploy"):
+          approval = get_human_approval(action="deploy")
+          if approval.granted:
+              kubectl("apply", manifest=manifest)

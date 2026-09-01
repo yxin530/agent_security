@@ -6,7 +6,22 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
-Last updated: reflects v0.19 (React/Next.js Coverage, Language Gap-Fill, ATLAS Backfill, CONTRIBUTING Files).
+---
+
+## v0.20 Additions (Agentic-AI Defensive Coverage)
+
+| Item | Status | Notes |
+|---|---|---|
+| Rule Family 1 — Vector/RAG Isolation (Req 158) | implemented | `vector-store-tenant-isolation-001`, `rag-retrieval-access-control-001` + TS/Python fixtures. |
+| Rule Family 2 — Sensitive-Data Minimization (Req 159) | implemented | `embedding-sensitive-data-001`, `agent-credential-exposure-001`, `sensitive-retrieval-in-prompt-001` + TS/Python fixtures. |
+| Rule Family 3 — Tool Integrity (Req 160) | implemented | `tool-poisoning-001`, `tool-schema-drift-001` + TS/Python fixtures. |
+| Rule Family 4 — High-Impact Approval (Req 161) | implemented | `high-impact-action-without-approval-001` + TS/Python fixtures (with adversarial). |
+| Rule Family 5 — Config & Memory Integrity (Req 162) | implemented | `agent-config-tampering-001`, `agent-context-poisoning-001`, `memory-write-without-integrity-001` + TS/Python fixtures. |
+| Rule Family 6 — Model/Dataset Provenance (Req 163) | implemented | `model-integrity-verification-001`, `training-data-provenance-missing-001` + TS/Python fixtures. |
+| Rule Family 7 — Bounded Autonomy (Req 164) | implemented | `agent-loop-budget-missing-001` + TS/Python fixtures. |
+| Runtime Monitor Design (Req 165) | implemented | Created `docs/monitor/runtime-agent-attacks.md`. |
+| Documented-Only Risk Disclosure (Req 166) | implemented | Added required disclosure phrase to 4 READMEs (`human-trust`, `social-engineering`, `deepfake`, `human-trafficking`). |
+| Documentation Updates (Req 167) | pending | Will update `coverage-status.md`, `llm-top-10.md`, `README.md`. |
 
 ---
 

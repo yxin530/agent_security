@@ -1,0 +1,73 @@
+id: vector-store-tenant-isolation-001
+title: Vector Query Missing Tenant or Namespace Filter
+severity: high
+category: data-poisoning
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A01:2021
+  owasp_llm:
+    - LLM08:2025
+    - LLM02:2025
+  cwe:
+    - CWE-862
+    - CWE-284
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (vectorStore|qdrant|pinecone|weaviate|chroma|milvus|supabase|collection)\.(query|search|retrieve|similaritySearch|similarity_search|search_vectors|fetch)\s*\(
+      flags: i
+      description: Matches a vector store query or search call
+    - pattern: (tenantId|tenant_id|namespace|filter|where|acl|userId|user_id|orgId|org_id)
+      flags: i
+      negate: true
+      description: Negated — flags the line only when no tenant/namespace/filter keyword is present
+description: |
+  Detects vector store query or similarity-search calls that lack a visible tenant, namespace, ACL, or authorization filter on the same line. Without a filter, a query may return embeddings or documents belonging to other tenants, enabling cross-tenant data leakage.
+  File-scope heuristic: the rule cannot prove that a separate authorization layer enforces isolation outside the query call. A negative result only means a recognizable filter keyword is absent on the calling line.
+remediation: |
+  Add a tenant, namespace, or ACL filter to every vector query call:
+    // TypeScript — Pinecone example
+    await index.query({ vector: embedding, filter: { tenantId: ctx.tenantId }, topK: 5 });
+    // Python — Chroma example
+    collection.query(query_embeddings=[embedding], where={"tenant_id": tenant_id})
+  Never allow cross-tenant fallback queries without an explicit authorization boundary.
+ai_guidance:
+  watch_for:
+    - Query helpers or wrapper functions that accept a raw vector without forwarding a tenant parameter.
+    - Dynamic filter construction where the tenantId may be injected or overridden by user input.
+    - Shared collection or index names used by multiple tenants without row-level namespace isolation.
+  references:
+    - title: OWASP LLM08:2025 - Vector and Embedding Weaknesses
+      url: https://genai.owasp.org/llmrisk/llm08-vector-and-embedding-weaknesses/
+    - title: OWASP A01:2021 - Broken Access Control
+      url: https://owasp.org/Top10/A01_2021-Broken_Access_Control/
+  related_rule_ids:
+    - rag-retrieval-access-control-001
+    - unsanitized-rag-write-001
+  reasoning_notes: This rule detects a missing filter keyword on the query call line. It cannot verify the completeness of the authorization model.
+detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if the filter is applied via a wrapper or middleware, and false positives if a separate access-control layer is already enforced outside the query call.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Vector query with no tenant filter
+    code: 'const results = await vectorStore.query({ vector: embedding });'
+  - type: true_negative
+    fixture: safe.ts
+    description: Vector query with explicit tenantId filter
+    code: 'const results = await vectorStore.query({ vector: embedding, filter: { tenantId: ctx.tenantId } });'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Chroma collection query with no tenant where-clause
+    code: 'results = collection.query(query_embeddings=[embedding], n_results=5)'
+  - type: true_negative
+    fixture: safe.py
+    description: Chroma collection query with tenant where-clause
+    code: 'results = collection.query(query_embeddings=[embedding], where={"tenant_id": tenant_id}, n_results=5)'

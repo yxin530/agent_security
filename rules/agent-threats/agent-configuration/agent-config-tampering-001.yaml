@@ -1,0 +1,74 @@
+id: agent-config-tampering-001
+title: Agent Configuration or Policy Mutated from Untrusted Input
+severity: high
+category: agent-configuration
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A04:2021
+  owasp_llm:
+    - LLM06:2025
+  cwe:
+    - CWE-345
+    - CWE-346
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (agentConfig|agent_config|systemPrompt|system_prompt|agentPolicy|agent_policy|setPolicy|updateConfig|setConfig|updatePolicy|agentSettings|agent_settings)\s*(=|\[|\()\s*[^;]*?(req\.|body\.|params\.|query\.|userInput|argv\[|process\.argv|request\.|untrusted)
+      flags: i
+      description: Agent configuration or policy field is assigned from a request, user input, or argv source
+    - pattern: (approved|trusted|signed|verified|immutable|readonly|frozen|sealed)
+      flags: i
+      negate: true
+      description: Negated — no visible trust or immutability indicator on the same line
+description: |
+  Detects agent configuration, policy, or system-prompt fields being mutated from an untrusted source (HTTP request, user input, argv) without a visible approval or integrity check on the same line. Allowing untrusted parties to overwrite agent configuration or policy is a category of attack distinct from prompt injection: the target is the agent's behavioral policy rather than a single user turn.
+  Distinct from prompt injection rules (which target user-turn content insertion) and memory/context-poisoning rules (which target persistent storage writes).
+remediation: |
+  Load agent configuration and policy from trusted, immutable sources only. If configuration must be user-adjustable, validate and gate every mutation:
+    // TypeScript
+    const policy = Object.freeze(approvedConfig.policy);
+    // Never: agentConfig.systemPrompt = req.body.prompt
+    # Python
+    agent_config = trusted_config_store.load(verified=True)
+    # Never: agent_policy = request.json["policy"]
+ai_guidance:
+  watch_for:
+    - Admin API endpoints that accept JSON patches to the agent's system prompt or behavior rules.
+    - Multi-tenant deployments where tenants can modify shared agent configuration fields via API calls.
+    - Agent initialization code that reads system prompt or policy from an environment variable populated at runtime from user input.
+  references:
+    - title: OWASP LLM06:2025 - Excessive Agency
+      url: https://genai.owasp.org/llmrisk/llm06-excessive-agency/
+    - title: OWASP A04:2021 - Insecure Design
+      url: https://owasp.org/Top10/A04_2021-Insecure_Design/
+  related_rule_ids:
+    - agent-context-poisoning-001
+    - memory-write-without-integrity-001
+    - system-prompt-injection-001
+  reasoning_notes: Detects untrusted-source keywords on the config assignment line. Indirect mutation through an intermediate variable is not visible to this rule.
+detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if the untrusted input is loaded into a neutral variable name on a prior line, and false positives if the assignment is inside a validated admin-only path.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Agent system prompt overwritten from request body
+    code: 'agentConfig.systemPrompt = req.body.prompt;'
+  - type: true_negative
+    fixture: safe.ts
+    description: Agent config loaded from approved immutable store
+    code: 'const agentConfig = Object.freeze(approvedConfig.load({ verified: true }));'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Agent policy overwritten from request JSON
+    code: 'agent_policy = request.json["policy"]'
+  - type: true_negative
+    fixture: safe.py
+    description: Agent policy loaded from trusted, sealed config store
+    code: 'agent_policy = trusted_config_store.load(signed=True)'

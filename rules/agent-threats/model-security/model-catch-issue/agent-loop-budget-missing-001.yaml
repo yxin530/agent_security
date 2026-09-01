@@ -1,0 +1,77 @@
+id: agent-loop-budget-missing-001
+title: Agent Orchestration Loop Missing Budget or Step Limit
+severity: high
+category: model-security
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A04:2021
+  owasp_llm:
+    - LLM06:2025
+    - LLM05:2025
+  cwe:
+    - CWE-400
+    - CWE-834
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (while|for)\s*\(.*(true|True|agent\.isRunning|1\s*==\s*1|loop|continue)\)
+      flags: i
+      description: Detects an unbounded loop that drives agent orchestration
+    - pattern: (maxSteps|max_steps|budget|maxIterations|max_iterations|stepLimit|step_limit|timeout|break)
+      flags: i
+      negate: true
+      description: Negated — no visible step budget, timeout, or break condition on the same line
+description: |
+  Detects agent orchestration loops (`while (true)`) that lack a visible step budget, iteration limit, or timeout declaration on the same line. Autonomous agents running in unbounded loops can consume infinite API credits or compute resources if they encounter a hallucination loop, an unresolvable tool error, or a malicious prompt designed to trap the agent (Denial of Wallet).
+  Line-scope heuristic: the rule cannot trace budget variables defined outside the loop header. A negative result means no recognizable budget keyword is in the loop declaration.
+remediation: |
+  Enforce a strict step limit, token budget, or timeout on every agent orchestration loop:
+    // TypeScript
+    let steps = 0;
+    while (agent.isRunning() && steps < maxSteps) {
+      await agent.step();
+      steps++;
+    }
+    # Python
+    for step in range(max_iterations):
+        result = agent.step()
+        if result.is_done(): break
+ai_guidance:
+  watch_for:
+    - Custom agent orchestrators that rely entirely on the LLM to emit a "STOP" token to terminate the loop.
+    - Retry loops for tool execution that do not cap the number of consecutive retry attempts.
+    - ReAct loops (Reason/Act) where the model repeatedly fails to parse tool output and loops infinitely.
+  references:
+    - title: OWASP LLM06:2025 - Excessive Agency
+      url: https://genai.owasp.org/llmrisk/llm06-excessive-agency/
+    - title: OWASP A04:2021 - Insecure Design
+      url: https://owasp.org/Top10/A04_2021-Insecure_Design/
+  related_rule_ids:
+    - missing-llm-error-handling-001
+  reasoning_notes: Detects unbounded loop patterns and negated budget keywords on the same line.
+detection_limitations: As a line-scope regex heuristic, this rule cannot verify break conditions inside the loop body. It may produce false negatives if the loop limits are evaluated within the loop block, and false positives if non-agent loops (e.g., event listeners) match the pattern.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Infinite agent orchestration loop with no budget
+    code: 'while (agent.isRunning()) { await agent.step(); }'
+  - type: true_negative
+    fixture: safe.ts
+    description: Agent loop bounded by maxSteps
+    code: 'while (agent.isRunning() && steps < maxSteps) { await agent.step(); steps++; }'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Infinite Python while loop
+    code: 'while True: agent.step()'
+  - type: true_negative
+    fixture: safe.py
+    description: Python loop bounded by max_iterations
+    code: 'for step in range(max_iterations): agent.step()'

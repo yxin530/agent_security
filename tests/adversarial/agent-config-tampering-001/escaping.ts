@@ -1,0 +1,1 @@
+AgentConfig.SystemPrompt = userInput.prompt;

@@ -1,0 +1,65 @@
+id: training-data-provenance-missing-001
+title: Training Data Loaded Without Provenance or Integrity Metadata
+severity: high
+category: model-security
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A08:2021
+  owasp_llm:
+    - LLM03:2025
+    - LLM04:2025
+  cwe:
+    - CWE-345
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (loadDataset|fetchDataset|load_dataset|read_csv|read_json|Dataset\.from|read_parquet)\s*\(
+      flags: i
+      description: Dataset ingestion call
+    - pattern: (hash|checksum|provenance|signature|approved|verified|trusted|license)
+      flags: i
+      negate: true
+      description: Negated — no visible provenance, integrity, or license check on the same line
+description: |
+  Detects dataset loading or ingestion calls that lack a visible provenance, integrity hash, or approval verification on the same line. Consuming untrusted datasets introduces risks of data poisoning and copyright/license violations.
+  Distinct from unverified-fine-tune-source-001 which detects user-writable sources passed to a fine-tuning API. This rule targets the ingestion step where metadata should be verified.
+remediation: |
+  Verify dataset provenance and integrity before use:
+    # Python
+    dataset = load_dataset("org/data", revision="sha1-hash")
+ai_guidance:
+  watch_for:
+    - Datasets loaded directly from a mutable S3 bucket or unpinned URL.
+  references:
+    - title: OWASP LLM04:2025 - Data and Model Poisoning
+      url: https://genai.owasp.org/llmrisk/llm04-data-and-model-poisoning/
+  related_rule_ids:
+    - model-integrity-verification-001
+    - unverified-fine-tune-source-001
+  reasoning_notes: Detects missing metadata keywords on the dataset loading line.
+detection_limitations: Line-scope regex heuristic. False negatives if metadata is checked on a different line.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Dataset loaded without hash or revision
+    code: 'dataset = load_dataset("org/data")'
+  - type: true_negative
+    fixture: safe.py
+    description: Dataset loaded with hash revision
+    code: 'dataset = load_dataset("org/data", revision="sha1-hash")'
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: TS dataset load without checksum
+    code: 'const data = await loadDataset("data.csv");'
+  - type: true_negative
+    fixture: safe.ts
+    description: TS dataset load with checksum
+    code: 'const data = await loadDataset("data.csv", { checksum: expectedHash });'

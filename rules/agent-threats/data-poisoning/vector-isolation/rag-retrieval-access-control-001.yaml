@@ -1,0 +1,86 @@
+id: rag-retrieval-access-control-001
+title: RAG Retrieval Results Forwarded to Model Without Authorization Check
+severity: high
+category: data-poisoning
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A01:2021
+  owasp_llm:
+    - LLM08:2025
+    - LLM02:2025
+  cwe:
+    - CWE-862
+    - CWE-285
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: (vectorStore|qdrant|pinecone|weaviate|chroma|milvus|supabase|collection)\.(query|search|retrieve|similaritySearch|similarity_search)\s*\(
+      flags: i
+      description: File contains a vector retrieval call
+    - pattern: (messages|prompt|context|completion|chat)\s*[\.\[\(=].*?(result|retrieved|docs|chunks|hits)
+      flags: i
+      description: File pipes retrieval results into a model message or prompt
+    - pattern: (authorize|checkAccess|verifyAccess|canRead|hasPermission|isAllowed|acl|accessControl|policyCheck)
+      flags: i
+      negate: true
+      description: Negated — no visible access-control check in the file
+description: |
+  Detects files where vector/RAG retrieval results are forwarded into a model prompt or message context without a visible authorization or access-control check. An agent that blindly passes retrieved documents to the model may expose data the requesting user is not permitted to see.
+  File-scope heuristic: the rule cannot trace data flow across module boundaries. A negative result means no recognizable authorization call was found in the same file.
+remediation: |
+  Verify that the requesting user or tenant is authorized to receive each retrieved document before including it in the model context:
+    // TypeScript
+    const docs = await vectorStore.query({ vector: embedding, filter: { tenantId } });
+    const allowed = await accessControl.filter(docs, userId);
+    const response = await chat({ messages: [{ role: 'user', content: allowed.map(d => d.text).join('\n') }] });
+  Use row-level security or post-retrieval ACL filtering rather than relying solely on the query filter.
+ai_guidance:
+  watch_for:
+    - Retrieval helper functions that return results without propagating the caller's identity or permission set.
+    - Cached retrieval results reused across different user sessions without re-validation.
+    - Streaming retrieval pipelines where documents are inserted into the model context before ACL checks complete.
+  references:
+    - title: OWASP LLM08:2025 - Vector and Embedding Weaknesses
+      url: https://genai.owasp.org/llmrisk/llm08-vector-and-embedding-weaknesses/
+    - title: OWASP A01:2021 - Broken Access Control
+      url: https://owasp.org/Top10/A01_2021-Broken_Access_Control/
+  related_rule_ids:
+    - vector-store-tenant-isolation-001
+    - unsanitized-rag-write-001
+  reasoning_notes: File-scope pattern only. Cross-module authorization layers are not visible to this rule.
+detection_limitations: As a file-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if authorization is enforced in a middleware or imported helper, and false positives if access control is enforced through mechanisms not matching the recognized keyword list.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: RAG results piped directly to chat completion with no access control check
+    code: |
+      const results = await vectorStore.query({ vector: embedding });
+      const response = await chat({ messages: [{ role: 'user', content: results.docs }] });
+  - type: true_negative
+    fixture: safe.ts
+    description: Retrieval results filtered by access control before being forwarded to the model
+    code: |
+      const results = await vectorStore.query({ vector: embedding, filter: { tenantId } });
+      const allowed = await accessControl.filter(results.docs, userId);
+      const response = await chat({ messages: [{ role: 'user', content: allowed }] });
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Python RAG results passed to completion without authorization check
+    code: |
+      results = collection.query(query_embeddings=[embedding])
+      response = client.chat.completions.create(messages=[{"role": "user", "content": str(results["documents"])}])
+  - type: true_negative
+    fixture: safe.py
+    description: Python retrieval with authorization check before prompt construction
+    code: |
+      results = collection.query(query_embeddings=[embedding], where={"tenant_id": tenant_id})
+      allowed = accessControl.filter(results["documents"], user_id)
+      response = client.chat.completions.create(messages=[{"role": "user", "content": str(allowed)}])

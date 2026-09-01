@@ -1,0 +1,89 @@
+id: sensitive-retrieval-in-prompt-001
+title: Sensitive Retrieved Data Forwarded to Model Prompt Without Redaction
+severity: high
+category: sensitive-data
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A01:2021
+  owasp_llm:
+    - LLM02:2025
+    - LLM08:2025
+  cwe:
+    - CWE-200
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: file
+  logic: AND
+  conditions:
+    - pattern: (db\.|database\.|query\(|find\(|findOne\(|findAll\(|fetch\(|retrieve\(|getUser|getUserById|getRecord)\s*[^;]*?(email|phone|password|ssn|nric|dob|credit_card|passport|ic_number)
+      flags: i
+      description: File retrieves a data record containing recognizable PII fields
+    - pattern: (messages|prompt|content|system|developer)\s*[\.\[\(=].*?(result|record|user|data|row|doc)
+      flags: i
+      description: File pipes a retrieval result variable into a model message or prompt
+    - pattern: (redact|mask|sanitize|minimize|anonymize|scrub|strip|filter)
+      flags: i
+      negate: true
+      description: Negated — no visible minimization step anywhere in the file
+description: |
+  Detects files where a database or retrieval query fetches records containing recognizable PII fields (email, phone, password, ssn, credit_card, etc.) and the result is subsequently forwarded into a model prompt or message context without a visible redaction, masking, or minimization step. This exposes raw personal data to the model and to any logged model context.
+  File-scope heuristic: the rule cannot trace variables across module boundaries. A negative result means no recognizable minimization call was found in the same file.
+remediation: |
+  Redact or project only necessary fields before including data in the model context:
+    // TypeScript
+    const user = await db.findOne({ id: userId });
+    const safeUser = redact(user, ['password', 'ssn', 'email']);
+    await chat({ messages: [{ role: 'user', content: JSON.stringify(safeUser) }] });
+    # Python
+    user = db.find_one({"_id": user_id})
+    safe_user = mask(user, fields=["password", "ssn"])
+    client.chat.completions.create(messages=[{"role": "user", "content": str(safe_user)}])
+ai_guidance:
+  watch_for:
+    - Full user profile objects serialized and appended to a prompt without field projection.
+    - Database joins that pull PII columns alongside benign data and pass the whole result set to the model.
+    - Retrieval-augmented pipelines where user-specific documents containing PII are used verbatim as context.
+  references:
+    - title: OWASP LLM02:2025 - Sensitive Information Disclosure
+      url: https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/
+    - title: OWASP A01:2021 - Broken Access Control
+      url: https://owasp.org/Top10/A01_2021-Broken_Access_Control/
+  related_rule_ids:
+    - embedding-sensitive-data-001
+    - agent-credential-exposure-001
+    - rag-retrieval-access-control-001
+  reasoning_notes: File-scope pattern only. Cross-module redaction layers are not visible to this rule.
+detection_limitations: As a file-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if PII fields use custom naming conventions, and false positives if redaction is enforced in a database view or ORM layer outside this file.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: User record with email and phone passed directly to model prompt
+    code: |
+      const user = await db.findOne({ id: userId });
+      await chat({ messages: [{ role: 'user', content: JSON.stringify(user) }] });
+  - type: true_negative
+    fixture: safe.ts
+    description: User record redacted before being included in model context
+    code: |
+      const user = await db.findOne({ id: userId });
+      const safeUser = redact(user, ['password', 'ssn', 'email']);
+      await chat({ messages: [{ role: 'user', content: JSON.stringify(safeUser) }] });
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Python DB record with email sent to completion without masking
+    code: |
+      user = db.find_one({"_id": user_id})
+      client.chat.completions.create(messages=[{"role": "user", "content": str(user)}])
+  - type: true_negative
+    fixture: safe.py
+    description: Python DB record masked before prompt construction
+    code: |
+      user = db.find_one({"_id": user_id})
+      safe_user = mask(user, fields=["email", "phone"])
+      client.chat.completions.create(messages=[{"role": "user", "content": str(safe_user)}])

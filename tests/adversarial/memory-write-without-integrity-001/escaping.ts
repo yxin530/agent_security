@@ -1,0 +1,1 @@
+LongTermMemory.Store(thought);

@@ -1,0 +1,72 @@
+id: agent-context-poisoning-001
+title: Untrusted Input Written to Agent Memory or Context Store Without Sanitization
+severity: high
+category: data-poisoning
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A04:2021
+  owasp_llm:
+    - LLM04:2025
+  atlas: AML.T0020
+  cwe:
+    - CWE-345
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (memory|context|memoryStore|contextStore|agentMemory|agent_memory|shortTermMemory|short_term_memory)\.(set|push|append|write|store|upsert|add|update)\s*\(.*?(req\.|body\.|params\.|query\.|userInput|argv\[|untrusted)
+      flags: i
+      description: Untrusted input written into an in-memory or context store
+    - pattern: (sanitize|validate|verify|trusted|approved|signed|hash|checksum)
+      flags: i
+      negate: true
+      description: Negated — no visible sanitization or provenance check on the same line
+description: |
+  Detects writes to agent memory or context stores that source their content directly from an untrusted input (HTTP request, user body, argv) without a visible sanitization or provenance check on the same line. Poisoning an agent's context or short-term memory can cause the agent to act on malicious instructions across subsequent turns.
+  Distinct from unsanitized-rag-write-001, which targets writes to vector store databases (RAG). This rule targets in-memory context stores and agent memory objects. Distinct from agent-config-tampering-001, which targets policy/config fields.
+remediation: |
+  Sanitize and provenance-stamp any user-derived content before writing it to agent memory:
+    // TypeScript
+    memory.set('context', sanitize(req.body.userMessage));
+    # Python
+    agent_memory.write('last_input', validate(request.json['message']))
+ai_guidance:
+  watch_for:
+    - Agent frameworks (LangChain, LlamaIndex) that store chat history including user messages directly in memory without sanitization.
+    - Multi-turn agent sessions where an early turn's malicious content persists in memory and influences later tool calls.
+    - Memory modules that write user-supplied metadata (tags, labels) alongside content without validation.
+  references:
+    - title: OWASP LLM04:2025 - Data and Model Poisoning
+      url: https://genai.owasp.org/llmrisk/llm04-data-and-model-poisoning/
+    - title: OWASP A04:2021 - Insecure Design
+      url: https://owasp.org/Top10/A04_2021-Insecure_Design/
+  related_rule_ids:
+    - memory-write-without-integrity-001
+    - agent-config-tampering-001
+    - unsanitized-rag-write-001
+  reasoning_notes: Detects untrusted-source keywords on the memory write line. Context poisoning via intermediate variable names not matching the keyword list is not visible to this rule.
+detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if the untrusted input is stored in a neutral variable on a prior line, and false positives if sanitization is applied in a middleware wrapper before this call.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: User message written directly to agent memory without sanitization
+    code: 'memory.set("context", req.body.userMessage);'
+  - type: true_negative
+    fixture: safe.ts
+    description: User message sanitized before being written to memory
+    code: 'memory.set("context", sanitize(req.body.userMessage));'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Python agent memory written from request body without validation
+    code: 'agent_memory.write("last_input", request.json["message"])'
+  - type: true_negative
+    fixture: safe.py
+    description: Python agent memory written from validated input
+    code: 'agent_memory.write("last_input", validate(request.json["message"]))'

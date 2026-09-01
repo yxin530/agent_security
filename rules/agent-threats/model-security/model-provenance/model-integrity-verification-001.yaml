@@ -1,0 +1,67 @@
+id: model-integrity-verification-001
+title: Model Loaded Without Checksum or Approved Source Verification
+severity: high
+category: model-security
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A08:2021
+  owasp_llm:
+    - LLM03:2025
+    - LLM05:2025
+  cwe:
+    - CWE-345
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (loadModel|fetchModel|downloadModel|AutoModel\.from_pretrained|load_model|pipeline\(|Llama\(|transformers\.pipeline)\s*\(
+      flags: i
+      description: Model loading or fetching call
+    - pattern: (hash|checksum|signature|approved|verified|trust_remote_code\s*=\s*False|trusted|sha256)
+      flags: i
+      negate: true
+      description: Negated — no visible integrity hash or trust boundary on the same line
+description: |
+  Detects calls to load, fetch, or instantiate machine learning models without a visible integrity check (hash, signature, or approved registry flag) on the same line. Loading unverified models from external sources introduces supply chain risks, including model backdoors or arbitrary code execution (e.g., pickle serialization vulnerabilities).
+  Distinct from training-data-provenance-missing-001, which targets dataset ingestion.
+remediation: |
+  Verify the model's cryptographic hash or use a trusted, approved registry:
+    # Python
+    model = AutoModel.from_pretrained("org/model", revision="sha1-hash")
+    # Python - explicit hash check
+    model_path = download_model(url, expected_hash="sha256:abcd...")
+ai_guidance:
+  watch_for:
+    - Dynamic model loading where the model path is taken from an environment variable without a corresponding expected hash.
+    - `trust_remote_code=True` being set in Hugging Face Transformers without additional compensating controls.
+  references:
+    - title: OWASP LLM03:2025 - Supply Chain Vulnerabilities
+      url: https://genai.owasp.org/llmrisk/llm03-supply-chain-vulnerabilities/
+  related_rule_ids:
+    - training-data-provenance-missing-001
+  reasoning_notes: Detects missing integrity keywords on the model loading line.
+detection_limitations: Line-scope regex heuristic. False negatives if the hash is checked on a different line, false positives if the framework performs default hash checking under the hood not visible in the syntax.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Model loaded without hash or revision
+    code: 'model = AutoModel.from_pretrained("org/model")'
+  - type: true_negative
+    fixture: safe.py
+    description: Model loaded with hash revision
+    code: 'model = AutoModel.from_pretrained("org/model", revision="sha1-hash")'
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: TS model load without checksum
+    code: 'const model = await loadModel("https://models.com/model.bin");'
+  - type: true_negative
+    fixture: safe.ts
+    description: TS model load with checksum
+    code: 'const model = await loadModel("https://models.com/model.bin", { checksum: expectedHash });'

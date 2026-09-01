@@ -1,0 +1,82 @@
+id: memory-write-without-integrity-001
+title: Persistent Agent Memory Written Without Author, Timestamp, or Integrity Metadata
+severity: high
+category: data-poisoning
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A04:2021
+  owasp_llm:
+    - LLM04:2025
+  atlas: AML.T0020
+  cwe:
+    - CWE-345
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (longTermMemory|long_term_memory|persistentMemory|persistent_memory|agentMemory|agent_memory|episodicMemory|episodic_memory|memoryStore|memory_store)\.(store|write|save|persist|upsert|add|insert)\s*\(
+      flags: i
+      description: Write to a persistent or long-term agent memory store
+    - pattern: (author|timestamp|integrity|hash|checksum|provenance|signed|signature|createdBy|created_by|source)
+      flags: i
+      negate: true
+      description: Negated — no visible integrity, provenance, or authorship metadata in the call
+description: |
+  Detects writes to persistent or long-term agent memory stores that lack visible author, timestamp, integrity hash, checksum, or provenance metadata in the call. Without integrity metadata, stored memory items cannot be audited, tampered entries cannot be detected, and the agent cannot distinguish between legitimate and poisoned memories.
+  Distinct from unsanitized-rag-write-001 (which checks for sanitization of the written content), agent-context-poisoning-001 (which checks for untrusted source of the content), and existing data-lifecycle rules. This rule targets the absence of metadata required for post-write integrity verification.
+remediation: |
+  Include authorship, timestamp, and an integrity hash when writing to persistent memory:
+    // TypeScript
+    longTermMemory.store({
+      content: thought,
+      author: agentId,
+      timestamp: Date.now(),
+      hash: sha256(thought),
+    });
+    # Python
+    persistent_memory.save({
+        "content": thought,
+        "author": agent_id,
+        "timestamp": time.time(),
+        "checksum": hashlib.sha256(thought.encode()).hexdigest(),
+    })
+ai_guidance:
+  watch_for:
+    - Agent memory modules that write bare string content without wrapping it in a metadata envelope.
+    - Memory compaction or summarization steps that discard the original authorship and provenance when creating a new memory entry.
+    - Shared memory stores where multiple agents write without distinguishable author identifiers.
+  references:
+    - title: OWASP LLM04:2025 - Data and Model Poisoning
+      url: https://genai.owasp.org/llmrisk/llm04-data-and-model-poisoning/
+    - title: OWASP A04:2021 - Insecure Design
+      url: https://owasp.org/Top10/A04_2021-Insecure_Design/
+  related_rule_ids:
+    - agent-context-poisoning-001
+    - unsanitized-rag-write-001
+    - missing-audit-logging-001
+  reasoning_notes: Detects missing metadata keywords on the memory store call line. Metadata supplied via a separately constructed object on a prior line is not visible to this rule.
+detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if metadata is passed as a pre-constructed variable, and false positives if the memory store automatically appends metadata in its implementation.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Persistent memory written with bare content and no metadata
+    code: 'longTermMemory.store(thought);'
+  - type: true_negative
+    fixture: safe.ts
+    description: Persistent memory written with author, timestamp, and hash
+    code: 'longTermMemory.store({ content: thought, author: agentId, timestamp: Date.now(), hash: sha256(thought) });'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Python persistent memory saved with bare content
+    code: 'persistent_memory.save(thought)'
+  - type: true_negative
+    fixture: safe.py
+    description: Python persistent memory saved with provenance metadata
+    code: 'persistent_memory.save({"content": thought, "author": agent_id, "timestamp": time.time(), "checksum": hashlib.sha256(thought.encode()).hexdigest()})'

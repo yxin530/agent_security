@@ -1,0 +1,75 @@
+id: embedding-sensitive-data-001
+title: Sensitive Data Passed to Embedding API Without Minimization
+severity: high
+category: sensitive-data
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A07:2021
+  owasp_llm:
+    - LLM02:2025
+    - LLM08:2025
+  cwe:
+    - CWE-200
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (embed|createEmbedding|embeddings?\.create|vectorize|encode)\s*\(.*?(api[_-]?key|secret|password|token|credential|ssn|nric|ic_number|dob|date_of_birth|email|phone|credit_card|passport)
+      flags: i
+      description: Recognizable secret or PII field name flows into an embedding call
+    - pattern: (sanitize|redact|mask|minimize|anonymize|hash|scrub|strip|remove)
+      flags: i
+      negate: true
+      description: Negated — no visible minimization or redaction on the same line
+description: |
+  Detects recognizable secret or personal-data field names (api_key, password, ssn, email, phone, credit_card, etc.) flowing into an embedding or vectorization API call without a visible redaction, minimization, or anonymization step on the same line. Embedding raw sensitive data persists it in the vector store as a recoverable representation.
+  Line-scope heuristic: the rule cannot trace variable assignments across lines. It may miss sensitive data loaded into a variable whose name does not match the keyword list.
+remediation: |
+  Redact or minimize sensitive fields before embedding:
+    // TypeScript
+    const safeText = redact(userRecord, ['password', 'ssn', 'email']);
+    await embeddings.create({ input: safeText });
+    # Python
+    safe_text = anonymize(user_data, fields=['email', 'phone'])
+    client.embeddings.create(input=safe_text, model='text-embedding-3-small')
+  Never embed raw credentials, PII, or secrets directly into a vector store.
+ai_guidance:
+  watch_for:
+    - Embedding helper functions that accept a full user record object without field filtering.
+    - Logging or debugging code that accidentally embeds a raw request body containing PII.
+    - Fine-tuning pipelines that embed training examples containing sensitive personal data.
+  references:
+    - title: OWASP LLM02:2025 - Sensitive Information Disclosure
+      url: https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/
+    - title: OWASP A07:2021 - Identification and Authentication Failures
+      url: https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/
+  related_rule_ids:
+    - agent-credential-exposure-001
+    - sensitive-retrieval-in-prompt-001
+    - hardcoded-secret-001
+  reasoning_notes: Keyword matching detects recognizable field names only. Data stored in variables with non-sensitive names is not visible to this rule.
+detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if the variable name does not match recognized sensitive field names, and false positives if a sanitization function not matching the keyword list is used.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Raw API key embedded directly into embedding call
+    code: 'await embeddings.create({ input: apiKey });'
+  - type: true_negative
+    fixture: safe.ts
+    description: Text redacted before embedding
+    code: 'await embeddings.create({ input: redact(userRecord, ["email", "ssn"]) });'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Raw email field passed to Python embeddings API
+    code: 'client.embeddings.create(input=user_email, model="text-embedding-3-small")'
+  - type: true_negative
+    fixture: safe.py
+    description: Anonymized text embedded
+    code: 'client.embeddings.create(input=anonymize(user_data, fields=["email"]), model="text-embedding-3-small")'

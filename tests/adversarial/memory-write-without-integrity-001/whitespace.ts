@@ -1,0 +1,1 @@
+longTermMemory.store(  thought  );

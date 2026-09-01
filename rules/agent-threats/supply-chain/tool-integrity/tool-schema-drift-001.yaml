@@ -1,0 +1,77 @@
+id: tool-schema-drift-001
+title: Tool Schema Loaded or Updated at Runtime Without Version Pin or Approval
+severity: high
+category: supply-chain
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A08:2021
+  owasp_llm:
+    - LLM03:2025
+  cwe:
+    - CWE-345
+detection:
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
+    - '**/*.json'
+    - '**/*.yaml'
+    - '**/*.yml'
+  scope: line
+  logic: AND
+  conditions:
+    - pattern: (loadToolSchema|updateToolSchema|loadSchema|updateSchema|tool_schema|toolSchema|schema\.load|schema_load|fetch.*schema|download.*schema|pull.*schema)
+      flags: i
+      description: Tool schema is loaded or updated from an external or dynamic source
+    - pattern: (version|hash|checksum|signature|pin|approved|locked|verified|digest)
+      flags: i
+      negate: true
+      description: Negated — no visible version pin or integrity check on the same line
+description: |
+  Detects tool schema load or update calls that lack a visible version pin, hash, or approval reference on the same line. An unpinned schema may silently drift or be replaced, changing the tool's behavior for any agent consuming it without detection.
+  Distinct from tool-poisoning-001 (which targets the registration call and untrusted source origin) and from existing tool-authentication rules. This rule targets schema freshness and integrity at load time.
+remediation: |
+  Pin tool schemas to a specific version and verify their integrity at load time:
+    // TypeScript
+    const schema = await loadToolSchema('https://registry.internal/tools/search/schema', {
+      version: '1.2.3',
+      expectedHash: 'sha256:abc123...',
+    });
+    # Python
+    schema = load_schema("search-tool", version="1.2.3", digest="sha256:abc123...")
+  Never accept a schema from an unversioned or unauthenticated endpoint.
+ai_guidance:
+  watch_for:
+    - Agent frameworks that hot-reload tool schemas from a remote URL at startup without a version lock.
+    - CI/CD pipelines that pull tool schema from a branch tip or a mutable tag rather than a pinned digest.
+    - Schemas loaded from a shared database row that can be modified by any tenant.
+  references:
+    - title: OWASP LLM03:2025 - Supply Chain Vulnerabilities
+      url: https://genai.owasp.org/llmrisk/llm03-supply-chain-vulnerabilities/
+    - title: OWASP A08:2021 - Software and Data Integrity Failures
+      url: https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/
+  related_rule_ids:
+    - tool-poisoning-001
+    - tool-description-prompt-injection-001
+  reasoning_notes: Detects missing integrity keywords on the schema load call line. Schema drift that uses trusted-looking variable names or pre-validated schema objects is not visible to this rule.
+detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if the version or hash is checked on a separate line, and false positives if the schema source is already pinned in a configuration file not scanned on the same line.
+confidence: heuristic
+test_cases:
+  - type: true_positive
+    fixture: vulnerable.ts
+    description: Tool schema fetched from remote URL without version or hash
+    code: 'const schema = await loadToolSchema("https://api.example.com/tools/schema");'
+  - type: true_negative
+    fixture: safe.ts
+    description: Tool schema loaded with version pin and integrity hash
+    code: 'const schema = await loadToolSchema("https://registry.internal/tools/schema", { version: "1.2.3", hash: SCHEMA_HASH });'
+  - type: true_positive
+    fixture: vulnerable.py
+    description: Python schema downloaded without version constraint
+    code: 'schema = load_schema("https://api.example.com/tool/search/schema")'
+  - type: true_negative
+    fixture: safe.py
+    description: Python schema loaded with version and digest
+    code: 'schema = load_schema("search-tool", version="1.2.3", digest="sha256:abc123...")'

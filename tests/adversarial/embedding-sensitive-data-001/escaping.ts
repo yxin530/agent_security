@@ -1,0 +1,1 @@
+Embeddings.Create({ input: Token });
