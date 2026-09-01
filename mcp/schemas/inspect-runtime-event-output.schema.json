@@ -1,1 +1,42 @@
-{"$schema":"http://json-schema.org/draft-07/schema#","type":"object","required":["findings","findingsCount"],"properties":{"findings":{"type":"array"},"findingsCount":{"type":"integer","minimum":0}}}
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["findings", "findingsCount"],
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ruleId", "title", "severity", "category", "file", "line", "column", "message", "remediation", "mapsTo", "detectionTier", "source"],
+        "properties": {
+          "ruleId": { "type": "string" },
+          "title": { "type": "string" },
+          "severity": { "type": "string", "enum": ["critical", "high", "medium", "low", "informational"] },
+          "category": { "type": "string" },
+          "file": { "type": "string" },
+          "line": { "type": "integer", "minimum": 1 },
+          "column": { "type": "integer", "minimum": 1 },
+          "message": { "type": "string" },
+          "remediation": { "type": "string" },
+          "mapsTo": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "owasp": { "type": "array", "items": { "type": "string", "pattern": "^A\\d{2}:\\d{4}$" } },
+              "pdpa": { "type": "string", "pattern": "^Section\\s+\\d+" },
+              "owasp_llm": { "type": "array", "items": { "type": "string", "pattern": "^LLM\\d{2}:20\\d{2}$" } },
+              "atlas": { "type": "string", "pattern": "^AML\\.T\\d{4}$" },
+              "cwe": { "type": "array", "items": { "type": "string", "pattern": "^CWE-\\d+$" } },
+              "mitre_attack": { "type": "string", "pattern": "^T\\d{4}(\\.\\d{3})?$" }
+            }
+          },
+          "detectionTier": { "type": "string", "enum": ["regex", "context-aware", "ast"] },
+          "source": { "type": "string", "enum": ["static", "runtime"] }
+        }
+      }
+    },
+    "findingsCount": { "type": "integer", "minimum": 0 }
+  }
+}

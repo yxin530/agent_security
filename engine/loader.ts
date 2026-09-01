@@ -18,7 +18,7 @@ export interface EntropyCheck {
 }
 
 export interface Detection {
-  extensions: string[];
+  extensions?: string[];
   file_patterns?: string[];
   conditions: DetectionCondition[];
   logic?: 'AND' | 'OR';
@@ -61,6 +61,7 @@ export interface Rule {
   description: string;
   remediation: string;
   test_cases: TestCase[];
+  runtime?: boolean;
 }
 
 export type AliasMap = Record<string, string>;

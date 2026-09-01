@@ -1,5 +1,5 @@
 id: weak-cipher-py-001
-title: "Use of Weak/Deprecated Cipher or Hash (Python)"
+title: Use of Weak/Deprecated Cipher or Hash (Python)
 severity: high
 category: appsec
 detection_tier: regex
@@ -11,54 +11,48 @@ maps_to:
     - CWE-327
     - CWE-328
 detection:
-  file_patterns: ["**/*.py"]
-  extensions: [".py"]
+  file_patterns:
+    - '**/*.py'
   scope: line
   logic: OR
   conditions:
-    - pattern: "Crypto\\.Cipher\\.(?:DES|ARC4|Blowfish|ARC2)|from\\s+Crypto\\.Cipher\\s+import\\s+(?:DES|ARC4|Blowfish)"
-      description: "Use of deprecated PyCryptodome cipher (DES, RC4, Blowfish)"
-    - pattern: "hashlib\\.(?:md5|sha1)\\s*\\([^)]*(?:password|passwd|pwd|secret)"
-      flags: "i"
-      description: "hashlib.md5 or sha1 used for password or secret hashing"
-    - pattern: "(?:MD5|SHA1)\\s*\\([^)]*(?:password|passwd|pwd|secret)"
-      flags: "i"
-      description: "MD5/SHA1 function call for password or secret"
-    - pattern: "cryptography\\.hazmat\\.primitives\\.ciphers\\.algorithms\\.(?:TripleDES|Blowfish|ARC4|SEED)"
-      description: "Use of deprecated cryptography library cipher algorithm"
-description: >
-  Detects use of deprecated symmetric cipher algorithms (DES, RC4,
-  Blowfish via PyCryptodome or the cryptography library) or weak hash
-  algorithms (MD5, SHA1) for password or secret hashing in Python.
-  False-positive surface is low for the cipher patterns; medium for
-  MD5/SHA1 where the context (password hashing vs. checksum) matters.
-
-  Note that MD5 and SHA1 are acceptable for non-security checksums
-  (file integrity, cache keys) but must not be used for password
-  hashing or cryptographic authentication. Use bcrypt, argon2-cffi, or
-  hashlib.pbkdf2_hmac() for password storage.
-remediation: "Use AES-GCM (from cryptography.hazmat.primitives.ciphers.algorithms import AES) for symmetric encryption. Use bcrypt (pip install bcrypt) or argon2-cffi for password hashing. Never use DES, RC4, MD5, or SHA1 for security-sensitive operations."
+    - pattern: Crypto\.Cipher\.(?:DES|ARC4|Blowfish|ARC2)|from\s+Crypto\.Cipher\s+import\s+(?:DES|ARC4|Blowfish)
+      description: Use of deprecated PyCryptodome cipher (DES, RC4, Blowfish)
+    - pattern: hashlib\.(?:md5|sha1)\s*\([^)]*(?:password|passwd|pwd|secret)
+      flags: i
+      description: hashlib.md5 or sha1 used for password or secret hashing
+    - pattern: (?:MD5|SHA1)\s*\([^)]*(?:password|passwd|pwd|secret)
+      flags: i
+      description: MD5/SHA1 function call for password or secret
+    - pattern: cryptography\.hazmat\.primitives\.ciphers\.algorithms\.(?:TripleDES|Blowfish|ARC4|SEED)
+      description: Use of deprecated cryptography library cipher algorithm
+description: |
+  Detects use of deprecated symmetric cipher algorithms (DES, RC4, Blowfish via PyCryptodome or the cryptography library) or weak hash algorithms (MD5, SHA1) for password or secret hashing in Python. False-positive surface is low for the cipher patterns; medium for MD5/SHA1 where the context (password hashing vs. checksum) matters.
+  Note that MD5 and SHA1 are acceptable for non-security checksums (file integrity, cache keys) but must not be used for password hashing or cryptographic authentication. Use bcrypt, argon2-cffi, or hashlib.pbkdf2_hmac() for password storage.
+remediation: Use AES-GCM (from cryptography.hazmat.primitives.ciphers.algorithms import AES) for symmetric encryption. Use bcrypt (pip install bcrypt) or argon2-cffi for password hashing. Never use DES, RC4, MD5, or SHA1 for security-sensitive operations.
 ai_guidance:
   watch_for:
-    - "hashlib.md5() used for file content checksums, cache keys, or non-security integrity checks is acceptable and is a known false-positive source."
-    - "hashlib.sha1() used in HMAC or TOTP contexts (hmac.new(..., hashlib.sha1)) may be acceptable depending on the security model."
-    - "cryptography library's Fernet uses AES-128-CBC internally — not a concern unless you are directly specifying cipher algorithms."
+    - hashlib.md5() used for file content checksums, cache keys, or non-security integrity checks is acceptable and is a known false-positive source.
+    - hashlib.sha1() used in HMAC or TOTP contexts (hmac.new(..., hashlib.sha1)) may be acceptable depending on the security model.
+    - cryptography library's Fernet uses AES-128-CBC internally — not a concern unless you are directly specifying cipher algorithms.
   references:
-    - title: "OWASP Top 10:2021 A02 - Cryptographic Failures"
-      url: "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/"
-    - title: "Python cryptography library"
-      url: "https://cryptography.io/en/latest/"
-  related_rule_ids: ["weak-cipher-001", "insecure-random-java-001"]
+    - title: OWASP Top 10:2021 A02 - Cryptographic Failures
+      url: https://owasp.org/Top10/A02_2021-Cryptographic_Failures/
+    - title: Python cryptography library
+      url: https://cryptography.io/en/latest/
+  related_rule_ids:
+    - weak-cipher-001
+    - insecure-random-java-001
 test_cases:
   - type: true_positive
-    fixture: "vulnerable.py"
-    description: "hashlib.md5 used for password hashing"
+    fixture: vulnerable.py
+    description: hashlib.md5 used for password hashing
     code: |
       import hashlib
       hashed_password = hashlib.md5(password.encode()).hexdigest()
   - type: true_negative
-    fixture: "safe.py"
-    description: "bcrypt used for password hashing"
+    fixture: safe.py
+    description: bcrypt used for password hashing
     code: |
       import bcrypt
       hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())

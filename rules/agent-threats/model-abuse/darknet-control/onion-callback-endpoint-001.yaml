@@ -11,16 +11,6 @@ maps_to:
     - LLM02:2025
   atlas: AML.T0046
 detection:
-  extensions:
-    - .js
-    - .ts
-    - .py
-    - .go
-    - .rs
-    - .java
-    - .cs
-    - .rb
-    - .php
   scope: line
   logic: AND
   conditions:

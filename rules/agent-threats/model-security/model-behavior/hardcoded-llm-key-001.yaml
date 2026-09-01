@@ -11,7 +11,6 @@ maps_to:
     - LLM02:2025
   atlas: AML.T0046
 detection:
-  extensions: []
   scope: line
   logic: OR
   conditions:
@@ -30,3 +29,4 @@ test_cases:
     code: const key = process.env.ANTHROPIC_API_KEY;
 confidence: heuristic
 detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.
+runtime: true

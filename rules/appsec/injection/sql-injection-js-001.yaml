@@ -1,5 +1,5 @@
 id: sql-injection-js-001
-title: "SQL Injection via String Concatenation"
+title: SQL Injection via String Concatenation
 severity: high
 category: injection
 detection_tier: regex
@@ -8,36 +8,38 @@ maps_to:
   owasp:
     - A03:2021
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.py"]
-  extensions: [".js", ".ts", ".py"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.py'
   scope: line
   logic: OR
   conditions:
-    - pattern: '(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\s+.+[''"\s]\s*\+\s*[a-zA-Z_]\w*'
-      flags: "i"
-      description: "SQL keyword followed by string concatenation with a variable using +"
-    - pattern: '(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\s+[^''"]*\$\{[a-zA-Z_]\w*\}'
-      flags: "i"
-      description: "SQL keyword in a template literal with a variable interpolation"
-description: >
-  Detects raw SQL string concatenation which can lead to SQL injection. Two patterns:
-  string concatenation with `+` and template literal `${}` interpolation of a variable
-  directly into a SQL string. Use parameterised queries or an ORM instead.
-remediation: "Use parameterised queries (e.g. db.query('SELECT * FROM users WHERE id = ?', [userId])) or an ORM. Never interpolate user input directly into SQL strings."
+    - pattern: (SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\s+.+['"\s]\s*\+\s*[a-zA-Z_]\w*
+      flags: i
+      description: SQL keyword followed by string concatenation with a variable using +
+    - pattern: (SELECT|INSERT|UPDATE|DELETE|DROP|CREATE)\s+[^'"]*\$\{[a-zA-Z_]\w*\}
+      flags: i
+      description: SQL keyword in a template literal with a variable interpolation
+description: |
+  Detects raw SQL string concatenation which can lead to SQL injection. Two patterns: string concatenation with `+` and template literal `${}` interpolation of a variable directly into a SQL string. Use parameterised queries or an ORM instead.
+remediation: Use parameterised queries (e.g. db.query('SELECT * FROM users WHERE id = ?', [userId])) or an ORM. Never interpolate user input directly into SQL strings.
 ai_guidance:
   watch_for:
-    - "SQL built through helper functions or formatters that hide user input from the line-level regex."
+    - SQL built through helper functions or formatters that hide user input from the line-level regex.
   references:
-    - title: "OWASP Top 10:2021 A03 - Injection"
-      url: "https://owasp.org/Top10/A03_2021-Injection/"
-  related_rule_ids: ["sql-injection-php-001", "sql-injection-go-001"]
-  reasoning_notes: "The rule is line-oriented and does not perform taint or data-flow analysis."
+    - title: OWASP Top 10:2021 A03 - Injection
+      url: https://owasp.org/Top10/A03_2021-Injection/
+  related_rule_ids:
+    - sql-injection-php-001
+    - sql-injection-go-001
+  reasoning_notes: The rule is line-oriented and does not perform taint or data-flow analysis.
 test_cases:
   - type: true_positive
-    fixture: "vulnerable.ts"
-    description: "SQL string built by concatenating a variable"
-    code: 'const q = "SELECT * FROM users WHERE id = " + userId;'
+    fixture: vulnerable.ts
+    description: SQL string built by concatenating a variable
+    code: const q = "SELECT * FROM users WHERE id = " + userId;
   - type: true_negative
-    fixture: "safe.ts"
-    description: "Parameterised query using placeholder"
-    code: 'const q = db.query("SELECT * FROM users WHERE id = ?", [userId]);'
+    fixture: safe.ts
+    description: Parameterised query using placeholder
+    code: const q = db.query("SELECT * FROM users WHERE id = ?", [userId]);

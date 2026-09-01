@@ -22,3 +22,12 @@ test('runtime equivalents detect outbound LLM key and permissive tool grant obse
   const grant = inspectRuntimeEvent(rulesDir, { type: 'tool-call', data: '{"type":"tool_call","name":"grant","args":{"tools":["*"]},"timestamp":"2026-08-05T00:00:00Z"}' });
   assert.ok(grant.some(finding => finding.ruleId === 'permissive-mcp-grant-001' && finding.source === 'runtime'));
 });
+
+test('runtime monitor does not execute static-only rules against event JSON', () => {
+  const rulesDir = path.join(__dirname, '..', 'dist', 'rules');
+  const findings = inspectRuntimeEvent(rulesDir, {
+    type: 'llm-output',
+    data: '{"type":"llm_output","content":"db.query(`SELECT * FROM users WHERE id = ${userId}`)","timestamp":"2026-08-05T00:00:00Z"}'
+  });
+  assert.ok(!findings.some(finding => finding.ruleId === 'sql-injection-js-001'));
+});

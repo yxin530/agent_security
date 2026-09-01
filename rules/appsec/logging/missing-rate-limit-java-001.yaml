@@ -1,5 +1,5 @@
 id: missing-rate-limit-java-001
-title: "Missing Rate Limiting on Spring Boot HTTP Endpoint (Java)"
+title: Missing Rate Limiting on Spring Boot HTTP Endpoint (Java)
 severity: medium
 category: appsec
 detection_tier: regex
@@ -10,45 +10,36 @@ maps_to:
   cwe:
     - CWE-770
 detection:
-  file_patterns: ["**/*.java"]
-  extensions: [".java"]
+  file_patterns:
+    - '**/*.java'
   scope: file
   logic: AND
   conditions:
-    - pattern: "@(?:GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)\\s*\\("
-      description: "Spring Boot HTTP endpoint mapping annotation"
-    - pattern: "@RateLimiter|@Throttling|RateLimiter\\.of|Bucket4j|resilience4j\\.ratelimiter|throttle\\b"
-      flags: "i"
+    - pattern: '@(?:GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)\s*\('
+      description: Spring Boot HTTP endpoint mapping annotation
+    - pattern: '@RateLimiter|@Throttling|RateLimiter\.of|Bucket4j|resilience4j\.ratelimiter|throttle\b'
+      flags: i
       negate: true
-      description: "No rate limiting annotation or Bucket4j/Resilience4j rate limiter found"
-description: >
-  Detects Spring Boot controller methods annotated with HTTP mapping
-  annotations (@GetMapping, @PostMapping, etc.) that have no apparent
-  rate limiting in the same file (Resilience4j @RateLimiter, Bucket4j,
-  or a custom throttle check). False-positive surface is high: rate
-  limiting is often applied at the API gateway, load balancer, or a
-  servlet filter layer — none of which would appear in the controller file.
-
-  Missing rate limiting on HTTP endpoints allows attackers to brute-force
-  credentials, exhaust resources, or abuse paid API operations at no cost.
-  This rule is a review signal — confirm whether rate limiting is enforced
-  at the infrastructure or filter layer before treating this as a finding.
-remediation: "Apply rate limiting using Resilience4j's @RateLimiter annotation on sensitive endpoints, or use Bucket4j for per-user token-bucket rate limiting. For API gateways (AWS API GW, Kong, nginx), configure rate limiting at the gateway level."
+      description: No rate limiting annotation or Bucket4j/Resilience4j rate limiter found
+description: |
+  Detects Spring Boot controller methods annotated with HTTP mapping annotations (@GetMapping, @PostMapping, etc.) that have no apparent rate limiting in the same file (Resilience4j @RateLimiter, Bucket4j, or a custom throttle check). False-positive surface is high: rate limiting is often applied at the API gateway, load balancer, or a servlet filter layer — none of which would appear in the controller file.
+  Missing rate limiting on HTTP endpoints allows attackers to brute-force credentials, exhaust resources, or abuse paid API operations at no cost. This rule is a review signal — confirm whether rate limiting is enforced at the infrastructure or filter layer before treating this as a finding.
+remediation: Apply rate limiting using Resilience4j's @RateLimiter annotation on sensitive endpoints, or use Bucket4j for per-user token-bucket rate limiting. For API gateways (AWS API GW, Kong, nginx), configure rate limiting at the gateway level.
 ai_guidance:
   watch_for:
-    - "Rate limiting applied at the API gateway (AWS API Gateway, Kong, nginx rate_limit_zone) or a servlet filter/interceptor will not appear in the controller file."
-    - "Spring Security's authentication endpoints may be rate-limited via a dedicated AuthenticationFailureLimitingFilter."
-    - "Public read-only endpoints (GET /health, GET /status) may not need rate limiting."
+    - Rate limiting applied at the API gateway (AWS API Gateway, Kong, nginx rate_limit_zone) or a servlet filter/interceptor will not appear in the controller file.
+    - Spring Security's authentication endpoints may be rate-limited via a dedicated AuthenticationFailureLimitingFilter.
+    - Public read-only endpoints (GET /health, GET /status) may not need rate limiting.
   references:
-    - title: "OWASP Top 10:2021 A04 - Insecure Design"
-      url: "https://owasp.org/Top10/A04_2021-Insecure_Design/"
-    - title: "Resilience4j Rate Limiter"
-      url: "https://resilience4j.readme.io/docs/ratelimiter"
+    - title: OWASP Top 10:2021 A04 - Insecure Design
+      url: https://owasp.org/Top10/A04_2021-Insecure_Design/
+    - title: Resilience4j Rate Limiter
+      url: https://resilience4j.readme.io/docs/ratelimiter
   related_rule_ids: []
 test_cases:
   - type: true_positive
-    fixture: "tp.java"
-    description: "Spring Boot POST endpoint with no rate limiting"
+    fixture: tp.java
+    description: Spring Boot POST endpoint with no rate limiting
     code: |
       @RestController
       public class AuthController {
@@ -58,8 +49,8 @@ test_cases:
           }
       }
   - type: true_negative
-    fixture: "tn.java"
-    description: "Spring Boot POST endpoint with Resilience4j rate limiter"
+    fixture: tn.java
+    description: Spring Boot POST endpoint with Resilience4j rate limiter
     code: |
       @RestController
       public class AuthController {

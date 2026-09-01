@@ -1,5 +1,5 @@
 id: pii-in-logs-cs-001
-title: "PII Logged in Plaintext (C#/.NET)"
+title: PII Logged in Plaintext (C#/.NET)
 severity: high
 category: logging
 detection_tier: regex
@@ -7,56 +7,50 @@ scope: language-specific
 maps_to:
   owasp:
     - A09:2021
-  pdpa: "Section 9, Personal Data Protection Act 2010 (as amended)"
+  pdpa: Section 9, Personal Data Protection Act 2010 (as amended)
 detection:
-  file_patterns: ["**/*.cs"]
-  extensions: [".cs"]
+  file_patterns:
+    - '**/*.cs'
   scope: line
   logic: OR
   conditions:
-    - pattern: "_?[Ll]og(?:ger)?\\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\\s*\\([^)]*[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"
-      description: "ASP.NET Core ILogger call with an email address pattern"
-    - pattern: "_?[Ll]og(?:ger)?\\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\\s*\\([^)]*\\d{6}-\\d{2}-\\d{4}"
-      description: "ILogger call with a Malaysian IC number pattern"
-    - pattern: "_?[Ll]og(?:ger)?\\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\\s*\\([^)]*(?:\\+?60|0)[1-9]\\d{7,9}"
-      description: "ILogger call with a Malaysian phone number pattern"
-    - pattern: "_?[Ll]og(?:ger)?\\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\\s*\\([^)]*\\b(?:password|token|nric|icNo|secret|credential)\\b"
-      flags: "i"
-      description: "ILogger call with a PII-indicative variable name"
-    - pattern: "Console\\.Write(?:Line)?\\s*\\([^)]*\\b(?:password|token|nric|icNo|email|secret)\\b"
-      flags: "i"
-      description: "Console.WriteLine with a PII-indicative variable name"
-description: >
-  Detects C#/.NET logging calls (ASP.NET Core ILogger:
-  LogInformation/LogDebug/LogWarning/LogError/LogCritical/LogTrace) and
-  Console.WriteLine that may log personal data in plaintext, including
-  email addresses, Malaysian IC numbers, phone numbers, or variables with
-  PII-indicative names. False-positive surface is medium: variable names
-  matching PII patterns may not contain actual PII values.
-
-  Logging PII in plaintext violates PDPA Section 9 (Security Principle).
-  The 2024 Amendment Act extended Section 9 to directly bind data
-  processors effective 1 April 2025.
-remediation: "Redact or mask PII before logging. Use structured logging with Serilog or NLog enrichers that scrub PII field patterns. Never log raw email addresses, IC numbers, phone numbers, passwords, or tokens."
+    - pattern: _?[Ll]og(?:ger)?\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\s*\([^)]*[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}
+      description: ASP.NET Core ILogger call with an email address pattern
+    - pattern: _?[Ll]og(?:ger)?\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\s*\([^)]*\d{6}-\d{2}-\d{4}
+      description: ILogger call with a Malaysian IC number pattern
+    - pattern: _?[Ll]og(?:ger)?\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\s*\([^)]*(?:\+?60|0)[1-9]\d{7,9}
+      description: ILogger call with a Malaysian phone number pattern
+    - pattern: _?[Ll]og(?:ger)?\.Log(?:Information|Debug|Warning|Error|Critical|Trace)\s*\([^)]*\b(?:password|token|nric|icNo|secret|credential)\b
+      flags: i
+      description: ILogger call with a PII-indicative variable name
+    - pattern: Console\.Write(?:Line)?\s*\([^)]*\b(?:password|token|nric|icNo|email|secret)\b
+      flags: i
+      description: Console.WriteLine with a PII-indicative variable name
+description: |
+  Detects C#/.NET logging calls (ASP.NET Core ILogger: LogInformation/LogDebug/LogWarning/LogError/LogCritical/LogTrace) and Console.WriteLine that may log personal data in plaintext, including email addresses, Malaysian IC numbers, phone numbers, or variables with PII-indicative names. False-positive surface is medium: variable names matching PII patterns may not contain actual PII values.
+  Logging PII in plaintext violates PDPA Section 9 (Security Principle). The 2024 Amendment Act extended Section 9 to directly bind data processors effective 1 April 2025.
+remediation: Redact or mask PII before logging. Use structured logging with Serilog or NLog enrichers that scrub PII field patterns. Never log raw email addresses, IC numbers, phone numbers, passwords, or tokens.
 ai_guidance:
   watch_for:
-    - "Variable names matching PII patterns (e.g. 'icNo', 'email') may be used for non-PII purposes and produce false positives."
-    - "Serilog destructuring operators ({@user}) or custom sinks with PII redaction middleware may handle scrubbing before output."
-    - "Test fixtures and diagnostic code that deliberately log PII for local debugging are expected false-positive sources."
+    - Variable names matching PII patterns (e.g. 'icNo', 'email') may be used for non-PII purposes and produce false positives.
+    - Serilog destructuring operators ({@user}) or custom sinks with PII redaction middleware may handle scrubbing before output.
+    - Test fixtures and diagnostic code that deliberately log PII for local debugging are expected false-positive sources.
   references:
-    - title: "OWASP Top 10:2021 A09 - Security Logging and Monitoring Failures"
-      url: "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/"
-    - title: "ASP.NET Core Logging"
-      url: "https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/"
-  related_rule_ids: ["pii-in-logs-js-001", "pii-in-logs-java-001"]
+    - title: OWASP Top 10:2021 A09 - Security Logging and Monitoring Failures
+      url: https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/
+    - title: ASP.NET Core Logging
+      url: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/
+  related_rule_ids:
+    - pii-in-logs-js-001
+    - pii-in-logs-java-001
 test_cases:
   - type: true_positive
-    fixture: "vulnerable.cs"
-    description: "ILogger.LogInformation call with email address"
+    fixture: vulnerable.cs
+    description: ILogger.LogInformation call with email address
     code: |
       _logger.LogInformation("User logged in: {Email}", user.Email);
   - type: true_negative
-    fixture: "safe.cs"
-    description: "ILogger.LogInformation call with only user ID"
+    fixture: safe.cs
+    description: ILogger.LogInformation call with only user ID
     code: |
       _logger.LogInformation("User logged in: userId={UserId}", user.Id);

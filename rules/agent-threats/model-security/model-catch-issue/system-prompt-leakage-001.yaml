@@ -17,10 +17,6 @@ detection:
     - '**/*.js'
     - '**/*.ts'
     - '**/*.py'
-  extensions:
-    - .js
-    - .ts
-    - .py
   scope: file
   logic: AND
   conditions:

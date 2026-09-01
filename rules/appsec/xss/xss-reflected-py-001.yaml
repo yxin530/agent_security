@@ -1,5 +1,5 @@
 id: xss-reflected-py-001
-title: "Reflected XSS via render_template_string or f-string Response (Python)"
+title: Reflected XSS via render_template_string or f-string Response (Python)
 severity: high
 category: appsec
 detection_tier: regex
@@ -10,46 +10,39 @@ maps_to:
   cwe:
     - CWE-79
 detection:
-  file_patterns: ["**/*.py"]
-  extensions: [".py"]
+  file_patterns:
+    - '**/*.py'
   scope: file
   logic: AND
   conditions:
-    - pattern: "render_template_string\\s*\\(|make_response\\s*\\(|HttpResponse\\s*\\(|return\\s+f['\"].*<"
-      description: "Response generation call with potential HTML content"
-    - pattern: "request\\.args\\.|request\\.form\\.|request\\.json\\.|request\\.values\\.|request\\.data"
-      description: "User-controlled input from Flask/Django request object"
-    - pattern: "escape\\s*\\(|markupsafe\\.escape|html\\.escape|bleach\\.clean|jinja2\\.escape|Markup\\s*\\("
+    - pattern: render_template_string\s*\(|make_response\s*\(|HttpResponse\s*\(|return\s+f['"].*<
+      description: Response generation call with potential HTML content
+    - pattern: request\.args\.|request\.form\.|request\.json\.|request\.values\.|request\.data
+      description: User-controlled input from Flask/Django request object
+    - pattern: escape\s*\(|markupsafe\.escape|html\.escape|bleach\.clean|jinja2\.escape|Markup\s*\(
       negate: true
-      description: "No escaping or sanitization function found"
-description: >
-  Detects Python web handlers (Flask, Django) that combine user-controlled
-  request data (request.args, request.form, request.json) with an HTML
-  response mechanism (render_template_string, make_response, HttpResponse,
-  f-string HTML) without an apparent escaping call. False-positive surface
-  is medium: Jinja2's render_template() (not render_template_string()) and
-  Django's template engine auto-escape by default and are not covered by
-  this rule.
-
-  render_template_string() in Flask passes the template string through
-  Jinja2 but does not auto-escape unless explicitly configured, making it
-  particularly dangerous with user-supplied input as the template string.
-remediation: "Use Flask's render_template() with separate template files (which auto-escape by default). If render_template_string() is necessary, escape user input with markupsafe.escape() before interpolation. For Django, use template context variables ({{ var }}) which auto-escape."
+      description: No escaping or sanitization function found
+description: |
+  Detects Python web handlers (Flask, Django) that combine user-controlled request data (request.args, request.form, request.json) with an HTML response mechanism (render_template_string, make_response, HttpResponse, f-string HTML) without an apparent escaping call. False-positive surface is medium: Jinja2's render_template() (not render_template_string()) and Django's template engine auto-escape by default and are not covered by this rule.
+  render_template_string() in Flask passes the template string through Jinja2 but does not auto-escape unless explicitly configured, making it particularly dangerous with user-supplied input as the template string.
+remediation: Use Flask's render_template() with separate template files (which auto-escape by default). If render_template_string() is necessary, escape user input with markupsafe.escape() before interpolation. For Django, use template context variables ({{ var }}) which auto-escape.
 ai_guidance:
   watch_for:
-    - "Flask's render_template() (not render_template_string) auto-escapes Jinja2 variables and is safe."
-    - "Django's template engine auto-escapes context variables by default."
-    - "markupsafe.Markup() wrapping can mark strings as safe — any usage near user input is a review point, not a safe pattern."
+    - Flask's render_template() (not render_template_string) auto-escapes Jinja2 variables and is safe.
+    - Django's template engine auto-escapes context variables by default.
+    - markupsafe.Markup() wrapping can mark strings as safe — any usage near user input is a review point, not a safe pattern.
   references:
-    - title: "OWASP Top 10:2021 A03 - Injection"
-      url: "https://owasp.org/Top10/A03_2021-Injection/"
-    - title: "Flask Security — Cross-Site Scripting (XSS)"
-      url: "https://flask.palletsprojects.com/en/latest/security/#cross-site-scripting-xss"
-  related_rule_ids: ["xss-reflected-js-001", "xss-php-001"]
+    - title: OWASP Top 10:2021 A03 - Injection
+      url: https://owasp.org/Top10/A03_2021-Injection/
+    - title: Flask Security — Cross-Site Scripting (XSS)
+      url: https://flask.palletsprojects.com/en/latest/security/#cross-site-scripting-xss
+  related_rule_ids:
+    - xss-reflected-js-001
+    - xss-php-001
 test_cases:
   - type: true_positive
-    fixture: "vulnerable.py"
-    description: "render_template_string with unsanitized request argument"
+    fixture: vulnerable.py
+    description: render_template_string with unsanitized request argument
     code: |
       from flask import Flask, request, render_template_string
       app = Flask(__name__)
@@ -58,8 +51,8 @@ test_cases:
           name = request.args.get('name', '')
           return render_template_string(f'<h1>Hello, {name}!</h1>')
   - type: true_negative
-    fixture: "safe.py"
-    description: "Input escaped with markupsafe.escape before template rendering"
+    fixture: safe.py
+    description: Input escaped with markupsafe.escape before template rendering
     code: |
       from flask import Flask, request, render_template_string
       from markupsafe import escape

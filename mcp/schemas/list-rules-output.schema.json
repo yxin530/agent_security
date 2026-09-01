@@ -1,1 +1,36 @@
-{"$schema":"http://json-schema.org/draft-07/schema#","type":"object","required":["rulesetVersion","rules"],"properties":{"rulesetVersion":{"type":"string"},"rules":{"type":"array"}}}
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rulesetVersion", "rules"],
+  "properties": {
+    "rulesetVersion": { "type": "string" },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "severity", "category", "detectionTier", "mapsTo"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "severity": { "type": "string", "enum": ["critical", "high", "medium", "low", "informational"] },
+          "category": { "type": "string" },
+          "detectionTier": { "type": "string", "enum": ["regex", "context-aware", "ast"] },
+          "mapsTo": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "owasp": { "type": "array", "items": { "type": "string", "pattern": "^A\\d{2}:\\d{4}$" } },
+              "pdpa": { "type": "string", "pattern": "^Section\\s+\\d+" },
+              "owasp_llm": { "type": "array", "items": { "type": "string", "pattern": "^LLM\\d{2}:20\\d{2}$" } },
+              "atlas": { "type": "string", "pattern": "^AML\\.T\\d{4}$" },
+              "cwe": { "type": "array", "items": { "type": "string", "pattern": "^CWE-\\d+$" } },
+              "mitre_attack": { "type": "string", "pattern": "^T\\d{4}(\\.\\d{3})?$" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

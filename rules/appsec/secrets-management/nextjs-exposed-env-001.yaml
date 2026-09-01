@@ -1,5 +1,5 @@
 id: nextjs-exposed-env-001
-title: "Secret Exposed in Next.js NEXT_PUBLIC_ Environment Variable"
+title: Secret Exposed in Next.js NEXT_PUBLIC_ Environment Variable
 severity: high
 category: secrets-management
 detection_tier: regex
@@ -11,49 +11,48 @@ maps_to:
     - CWE-312
     - CWE-215
 detection:
-  file_patterns: ["**/*.env*", "**/.env*", "**/next.config.*", "**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
-  extensions: [".env", ".env.local", ".env.production", ".env.development", ".js", ".ts", ".jsx", ".tsx", ".mjs"]
+  file_patterns:
+    - '**/*.env*'
+    - '**/.env*'
+    - '**/next.config.*'
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.jsx'
+    - '**/*.tsx'
   scope: line
   logic: OR
   conditions:
-    - pattern: "NEXT_PUBLIC_(?:API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE|AUTH|SIGNING|WEBHOOK|ENCRYPTION|CREDENTIAL)\\s*="
-      flags: "i"
-      description: "NEXT_PUBLIC_ environment variable with a secret-sounding name"
-    - pattern: "process\\.env\\.NEXT_PUBLIC_(?:API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE|AUTH|SIGNING|WEBHOOK|ENCRYPTION|CREDENTIAL)"
-      flags: "i"
-      description: "Reference to a NEXT_PUBLIC_ secret-named env var in source code"
-description: >
-  Detects Next.js NEXT_PUBLIC_ prefixed environment variables whose names
-  suggest they contain secrets (API keys, tokens, passwords, signing keys,
-  webhooks). The NEXT_PUBLIC_ prefix causes Next.js to inline the variable
-  value into the client-side JavaScript bundle at build time, making it
-  accessible to any user who inspects the page source or bundle.
-  False-positive surface is low: any variable with NEXT_PUBLIC_ plus a
-  secret-sounding name is almost certainly a misconfiguration.
-
-  Only variables without the NEXT_PUBLIC_ prefix are kept server-side.
-  Variables like NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_GOOGLE_ANALYTICS_ID
-  that contain non-secret public identifiers are expected and are safe.
-remediation: "Remove the NEXT_PUBLIC_ prefix from any variable containing a secret. Secret variables should be accessed only in server-side code (API routes, Server Components, Server Actions, getServerSideProps) via process.env.MY_SECRET without the NEXT_PUBLIC_ prefix."
+    - pattern: NEXT_PUBLIC_(?:API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE|AUTH|SIGNING|WEBHOOK|ENCRYPTION|CREDENTIAL)\s*=
+      flags: i
+      description: NEXT_PUBLIC_ environment variable with a secret-sounding name
+    - pattern: process\.env\.NEXT_PUBLIC_(?:API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE|AUTH|SIGNING|WEBHOOK|ENCRYPTION|CREDENTIAL)
+      flags: i
+      description: Reference to a NEXT_PUBLIC_ secret-named env var in source code
+description: |
+  Detects Next.js NEXT_PUBLIC_ prefixed environment variables whose names suggest they contain secrets (API keys, tokens, passwords, signing keys, webhooks). The NEXT_PUBLIC_ prefix causes Next.js to inline the variable value into the client-side JavaScript bundle at build time, making it accessible to any user who inspects the page source or bundle. False-positive surface is low: any variable with NEXT_PUBLIC_ plus a secret-sounding name is almost certainly a misconfiguration.
+  Only variables without the NEXT_PUBLIC_ prefix are kept server-side. Variables like NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_GOOGLE_ANALYTICS_ID that contain non-secret public identifiers are expected and are safe.
+remediation: Remove the NEXT_PUBLIC_ prefix from any variable containing a secret. Secret variables should be accessed only in server-side code (API routes, Server Components, Server Actions, getServerSideProps) via process.env.MY_SECRET without the NEXT_PUBLIC_ prefix.
 ai_guidance:
   watch_for:
-    - "NEXT_PUBLIC_ variables containing only public, non-secret identifiers (GA tracking IDs, public app URLs, feature flags) are safe and are a false-positive source."
-    - "A placeholder value like NEXT_PUBLIC_API_KEY=your-key-here in a committed .env.example file is documentation, not a real secret."
+    - NEXT_PUBLIC_ variables containing only public, non-secret identifiers (GA tracking IDs, public app URLs, feature flags) are safe and are a false-positive source.
+    - A placeholder value like NEXT_PUBLIC_API_KEY=your-key-here in a committed .env.example file is documentation, not a real secret.
   references:
-    - title: "Next.js Environment Variables"
-      url: "https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables"
-    - title: "OWASP Top 10:2021 A07 - Identification and Authentication Failures"
-      url: "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/"
-  related_rule_ids: ["hardcoded-secret-001", "hardcoded-llm-key-001"]
+    - title: Next.js Environment Variables
+      url: https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables
+    - title: OWASP Top 10:2021 A07 - Identification and Authentication Failures
+      url: https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/
+  related_rule_ids:
+    - hardcoded-secret-001
+    - hardcoded-llm-key-001
 test_cases:
   - type: true_positive
-    fixture: "tp.env.local"
-    description: "NEXT_PUBLIC_ variable holding an API secret"
+    fixture: tp.env.local
+    description: NEXT_PUBLIC_ variable holding an API secret
     code: |
       NEXT_PUBLIC_API_SECRET=sk-live-ABCDEF1234567890
   - type: true_negative
-    fixture: "tn.env.local"
-    description: "Secret kept server-side without NEXT_PUBLIC_ prefix"
+    fixture: tn.env.local
+    description: Secret kept server-side without NEXT_PUBLIC_ prefix
     code: |
       API_SECRET=sk-live-ABCDEF1234567890
       NEXT_PUBLIC_APP_URL=https://example.com

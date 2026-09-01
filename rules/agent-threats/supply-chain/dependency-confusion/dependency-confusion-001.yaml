@@ -19,10 +19,6 @@ maps_to:
     - LLM03:2025
   atlas: AML.T0043
 detection:
-  extensions:
-    - .json
-    - .js
-    - .ts
   file_patterns:
     - '*.json'
     - '*.js'

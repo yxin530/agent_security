@@ -17,9 +17,6 @@ maps_to:
     - A07:2021
   atlas: AML.T0043
 detection:
-  extensions:
-    - .js
-    - .ts
   file_patterns:
     - '*.js'
     - '*.ts'

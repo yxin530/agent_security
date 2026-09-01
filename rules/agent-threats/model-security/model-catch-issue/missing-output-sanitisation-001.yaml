@@ -17,9 +17,6 @@ detection:
   file_patterns:
     - '**/*.js'
     - '**/*.ts'
-  extensions:
-    - .js
-    - .ts
   scope: file
   logic: AND
   conditions:

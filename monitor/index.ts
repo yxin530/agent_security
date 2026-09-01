@@ -19,6 +19,7 @@ export function inspectRuntimeEvent(rulesDir: string, event: RuntimeEvent, ruleI
   validateRuntimeEvent(event.type, event.data);
   const findings: Finding[] = [];
   for (const rule of loadRules(rulesDir)) {
+    if (!rule.runtime) continue;
     if (ruleIds && !ruleIds.includes(rule.id)) continue;
     const conditions = rule.detection.conditions;
     const matches = conditions.map(condition => {

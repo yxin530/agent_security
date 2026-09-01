@@ -1,5 +1,5 @@
 id: sql-injection-nextjs-001
-title: "SQL Injection in Next.js API Route or Server Component"
+title: SQL Injection in Next.js API Route or Server Component
 severity: high
 category: injection
 detection_tier: regex
@@ -10,43 +10,41 @@ maps_to:
   cwe:
     - CWE-89
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
-  extensions: [".js", ".ts", ".jsx", ".tsx"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.jsx'
+    - '**/*.tsx'
   scope: file
   logic: AND
   conditions:
-    - pattern: "(?:req\\.body|searchParams\\.get\\(|params\\.|request\\.json\\()"
-      description: "User-controlled input from Next.js API route or server component"
-    - pattern: "(SELECT|INSERT|UPDATE|DELETE|DROP)\\s+[^'\"`]*[`'\"]\\s*\\+|\\$\\{(?:req\\.body|searchParams|params)"
-      flags: "i"
-      description: "SQL keyword with direct string concatenation or template literal interpolation of request input"
-    - pattern: "\\?|\\$\\d+|parameterize|prepare|prisma\\.|drizzle\\."
+    - pattern: (?:req\.body|searchParams\.get\(|params\.|request\.json\()
+      description: User-controlled input from Next.js API route or server component
+    - pattern: (SELECT|INSERT|UPDATE|DELETE|DROP)\s+[^'"`]*[`'"]\s*\+|\$\{(?:req\.body|searchParams|params)
+      flags: i
+      description: SQL keyword with direct string concatenation or template literal interpolation of request input
+    - pattern: \?|\$\d+|parameterize|prepare|prisma\.|drizzle\.
       negate: true
-      description: "No parameterized query, ORM, or query builder found"
-description: >
-  Detects SQL string concatenation or template literal interpolation of
-  Next.js request input (req.body, searchParams.get(), params.*,
-  request.json()) directly into a SQL statement without an apparent
-  parameterized query, ORM (Prisma, Drizzle), or query builder.
-  False-positive surface is medium: ORM usage in a separate database
-  layer file would not appear here. This rule targets Next.js Pages Router
-  API routes (pages/api/) and App Router route handlers (app/api/).
-remediation: "Use an ORM (Prisma, Drizzle) or parameterized queries. Never interpolate Next.js request parameters directly into SQL strings."
+      description: No parameterized query, ORM, or query builder found
+description: |
+  Detects SQL string concatenation or template literal interpolation of Next.js request input (req.body, searchParams.get(), params.*, request.json()) directly into a SQL statement without an apparent parameterized query, ORM (Prisma, Drizzle), or query builder. False-positive surface is medium: ORM usage in a separate database layer file would not appear here. This rule targets Next.js Pages Router API routes (pages/api/) and App Router route handlers (app/api/).
+remediation: Use an ORM (Prisma, Drizzle) or parameterized queries. Never interpolate Next.js request parameters directly into SQL strings.
 ai_guidance:
   watch_for:
-    - "ORM calls (prisma.user.findMany, db.select()) in a separate database service layer are safe and will not appear in this file."
-    - "Pages Router (pages/api/) and App Router (app/api/ with GET/POST exports) are both in scope."
-    - "searchParams.get() from Next.js App Router Server Components is also in scope as a user-controlled input source."
+    - ORM calls (prisma.user.findMany, db.select()) in a separate database service layer are safe and will not appear in this file.
+    - Pages Router (pages/api/) and App Router (app/api/ with GET/POST exports) are both in scope.
+    - searchParams.get() from Next.js App Router Server Components is also in scope as a user-controlled input source.
   references:
-    - title: "OWASP Top 10:2021 A03 - Injection"
-      url: "https://owasp.org/Top10/A03_2021-Injection/"
-    - title: "Next.js Route Handlers"
-      url: "https://nextjs.org/docs/app/building-your-application/routing/route-handlers"
-  related_rule_ids: ["sql-injection-js-001"]
+    - title: OWASP Top 10:2021 A03 - Injection
+      url: https://owasp.org/Top10/A03_2021-Injection/
+    - title: Next.js Route Handlers
+      url: https://nextjs.org/docs/app/building-your-application/routing/route-handlers
+  related_rule_ids:
+    - sql-injection-js-001
 test_cases:
   - type: true_positive
-    fixture: "tp.ts"
-    description: "Next.js API route interpolates req.body directly into SQL"
+    fixture: tp.ts
+    description: Next.js API route interpolates req.body directly into SQL
     code: |
       export default async function handler(req, res) {
         const query = `SELECT * FROM users WHERE email = '${req.body.email}'`;
@@ -54,8 +52,8 @@ test_cases:
         res.json(result);
       }
   - type: true_negative
-    fixture: "tn.ts"
-    description: "Next.js API route uses Prisma ORM"
+    fixture: tn.ts
+    description: Next.js API route uses Prisma ORM
     code: |
       export default async function handler(req, res) {
         const result = await prisma.user.findUnique({ where: { email: req.body.email } });

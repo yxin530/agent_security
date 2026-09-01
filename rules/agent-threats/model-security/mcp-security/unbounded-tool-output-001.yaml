@@ -11,9 +11,6 @@ maps_to:
     - LLM10:2025
   atlas: AML.T0048
 detection:
-  extensions:
-    - .ts
-    - .js
   scope: line
   logic: AND
   conditions:

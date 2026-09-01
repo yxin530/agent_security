@@ -18,9 +18,8 @@ export interface Finding {
   source: 'static' | 'runtime';
 }
 
-export let lastScannedFiles = 0;
 export interface ScanOptions { timeoutMs?: number; enabledRules?: string[] | null; now?: () => number; }
-export interface ScanResult { findings: Finding[]; truncated: boolean; }
+export interface ScanResult { findings: Finding[]; truncated: boolean; scannedFiles: number; }
 
 function walkFiles(dir: string): string[] {
   const files: string[] = [];
@@ -109,15 +108,14 @@ export function scanDetailed(rulesDir: string, targetDir: string, options: ScanO
   const now = options.now ?? Date.now;
   const started = now();
   let truncated = false;
-  lastScannedFiles = 0;
+  let scannedFiles = 0;
   for (const file of walkFiles(targetDir)) {
     if (options.timeoutMs !== undefined && now() - started >= options.timeoutMs) { truncated = true; break; }
     const raw = fs.readFileSync(file);
     if (!isText(raw)) continue;
-    const extension = path.extname(file);
     const relative = path.relative(targetDir, file);
     const content = raw.toString('utf8');
-    if (rules.some(rule => rule.scope === 'language-agnostic' || (rule.detection.file_patterns ?? []).some(pattern => matchesPattern(relative, pattern)))) lastScannedFiles++;
+    if (rules.some(rule => rule.scope === 'language-agnostic' || (rule.detection.file_patterns ?? []).some(pattern => matchesPattern(relative, pattern)))) scannedFiles++;
     const lines = content.split(/\r?\n/);
     for (const rule of rules) {
       if (options.timeoutMs !== undefined && now() - started >= options.timeoutMs) { truncated = true; break; }
@@ -133,7 +131,7 @@ export function scanDetailed(rulesDir: string, targetDir: string, options: ScanO
         detectionTier: rule.detection_tier, source: 'static' });
     }
   }
-  return { findings, truncated };
+  return { findings, truncated, scannedFiles };
 }
 
 export function scan(rulesDir: string, targetDir: string, options: ScanOptions = {}): Finding[] {
@@ -153,8 +151,8 @@ if (require.main === module) {
     const timeoutMs = timeoutArg ? Number(timeoutArg) : undefined;
     const result = scanDetailed(arg('--rules', path.join(root, 'rules')), target, Number.isFinite(timeoutMs) ? { timeoutMs } : {});
     const findings = result.findings;
-  const format = arg('--format', 'text');
-    if (format === 'json') console.log(formatJson(findings, lastScannedFiles));
+    const format = arg('--format', 'text');
+    if (format === 'json') console.log(formatJson(findings, result.scannedFiles));
     else console.log(findings.length === 0 ? 'No findings.' : formatTerminal(findings));
     process.exitCode = findings.length > 0 ? 1 : 0;
   } catch (error) {

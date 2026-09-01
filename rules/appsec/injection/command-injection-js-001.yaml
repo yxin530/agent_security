@@ -1,5 +1,5 @@
 id: command-injection-js-001
-title: "Command Injection via child_process with User Input (JavaScript/TypeScript)"
+title: Command Injection via child_process with User Input (JavaScript/TypeScript)
 severity: high
 category: injection
 detection_tier: regex
@@ -10,45 +10,41 @@ maps_to:
   cwe:
     - CWE-78
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
-  extensions: [".js", ".ts", ".jsx", ".tsx"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.jsx'
+    - '**/*.tsx'
   scope: file
   logic: AND
   conditions:
-    - pattern: "child_process|exec\\s*\\(|execSync\\s*\\(|spawn\\s*\\(|spawnSync\\s*\\(|execFile\\s*\\("
-      description: "Use of Node.js child_process execution primitive"
-    - pattern: "req\\.(?:query|body|params)|process\\.argv|userInput"
-      description: "User-controlled input reference present in file"
-    - pattern: "execFile\\s*\\([^,]+,\\s*\\[|shellEscape|shlex\\.quote|sanitize|allowedCommands"
+    - pattern: child_process|exec\s*\(|execSync\s*\(|spawn\s*\(|spawnSync\s*\(|execFile\s*\(
+      description: Use of Node.js child_process execution primitive
+    - pattern: req\.(?:query|body|params)|process\.argv|userInput
+      description: User-controlled input reference present in file
+    - pattern: execFile\s*\([^,]+,\s*\[|shellEscape|shlex\.quote|sanitize|allowedCommands
       negate: true
-      description: "No safe execution pattern (execFile with array args, shell escaping, or allowlist) found"
-description: >
-  Detects Node.js child_process execution calls (exec, execSync, spawn,
-  spawnSync) used in files that also reference user-controlled input
-  (req.query, req.body, req.params) without an apparent safe execution
-  pattern. False-positive surface is medium: server-side scripts that run
-  system commands with hardcoded arguments but happen to read request data
-  elsewhere in the same file may trigger this rule.
-
-  Command injection allows an attacker to append shell metacharacters
-  (;, &&, |, $()) to user input to execute arbitrary OS commands on the
-  server.
-remediation: "Never pass user input to exec() or execSync(). Use execFile() with an array of arguments (never a shell string), which prevents shell metacharacter injection. If dynamic commands are unavoidable, use a strict allowlist of permitted command names."
+      description: No safe execution pattern (execFile with array args, shell escaping, or allowlist) found
+description: |
+  Detects Node.js child_process execution calls (exec, execSync, spawn, spawnSync) used in files that also reference user-controlled input (req.query, req.body, req.params) without an apparent safe execution pattern. False-positive surface is medium: server-side scripts that run system commands with hardcoded arguments but happen to read request data elsewhere in the same file may trigger this rule.
+  Command injection allows an attacker to append shell metacharacters (;, &&, |, $()) to user input to execute arbitrary OS commands on the server.
+remediation: Never pass user input to exec() or execSync(). Use execFile() with an array of arguments (never a shell string), which prevents shell metacharacter injection. If dynamic commands are unavoidable, use a strict allowlist of permitted command names.
 ai_guidance:
   watch_for:
-    - "execFile() called with a hardcoded command string and an array of arguments (not user-controlled) is safe and may still trigger this rule."
-    - "Child process calls in separate utility files may not reference request objects even though they receive user input indirectly."
-    - "Build scripts, CLI tools, and test helpers that use child_process with developer-controlled input are expected false-positive sources."
+    - execFile() called with a hardcoded command string and an array of arguments (not user-controlled) is safe and may still trigger this rule.
+    - Child process calls in separate utility files may not reference request objects even though they receive user input indirectly.
+    - Build scripts, CLI tools, and test helpers that use child_process with developer-controlled input are expected false-positive sources.
   references:
-    - title: "OWASP Top 10:2021 A03 - Injection"
-      url: "https://owasp.org/Top10/A03_2021-Injection/"
-    - title: "Node.js child_process Documentation"
-      url: "https://nodejs.org/api/child_process.html"
-  related_rule_ids: ["sql-injection-js-001"]
+    - title: OWASP Top 10:2021 A03 - Injection
+      url: https://owasp.org/Top10/A03_2021-Injection/
+    - title: Node.js child_process Documentation
+      url: https://nodejs.org/api/child_process.html
+  related_rule_ids:
+    - sql-injection-js-001
 test_cases:
   - type: true_positive
-    fixture: "tp.ts"
-    description: "exec() called with user-supplied filename"
+    fixture: tp.ts
+    description: exec() called with user-supplied filename
     code: |
       import { exec } from 'child_process';
       app.post('/convert', (req, res) => {
@@ -57,8 +53,8 @@ test_cases:
         });
       });
   - type: true_negative
-    fixture: "tn.ts"
-    description: "execFile with hardcoded command and validated argument array"
+    fixture: tn.ts
+    description: execFile with hardcoded command and validated argument array
     code: |
       import { execFile } from 'child_process';
       const ALLOWED_FILES = ['report.docx', 'invoice.docx'];

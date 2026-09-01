@@ -11,10 +11,6 @@ maps_to:
     - LLM06:2025
   atlas: AML.T0048
 detection:
-  extensions:
-    - .json
-    - .yaml
-    - .yml
   scope: file
   logic: AND
   conditions:
@@ -36,3 +32,4 @@ test_cases:
     code: '{ "allowedTools": ["read_file"], "requireAuth": true }'
 confidence: heuristic
 detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.
+runtime: true

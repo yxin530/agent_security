@@ -1,5 +1,5 @@
 id: missing-nextjs-auth-001
-title: "Missing Authentication Check in Next.js API Route"
+title: Missing Authentication Check in Next.js API Route
 severity: high
 category: appsec
 detection_tier: regex
@@ -11,48 +11,42 @@ maps_to:
     - CWE-284
     - CWE-306
 detection:
-  file_patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
-  extensions: [".js", ".ts", ".jsx", ".tsx"]
+  file_patterns:
+    - '**/*.js'
+    - '**/*.ts'
+    - '**/*.jsx'
+    - '**/*.tsx'
   scope: file
   logic: AND
   conditions:
-    - pattern: "export\\s+(?:default\\s+function\\s+handler|async\\s+function\\s+(?:GET|POST|PUT|DELETE|PATCH))"
-      description: "Next.js API route handler (Pages Router or App Router export)"
-    - pattern: "getSession|getServerSession|auth\\(\\)|withAuth|requireAuth|verifyToken|checkAuth|NextAuth|useSession"
-      flags: "i"
+    - pattern: export\s+(?:default\s+function\s+handler|async\s+function\s+(?:GET|POST|PUT|DELETE|PATCH))
+      description: Next.js API route handler (Pages Router or App Router export)
+    - pattern: getSession|getServerSession|auth\(\)|withAuth|requireAuth|verifyToken|checkAuth|NextAuth|useSession
+      flags: i
       negate: true
-      description: "No authentication check found in the file"
-description: >
-  Detects Next.js API route handlers (both Pages Router default exports
-  and App Router GET/POST/PUT/DELETE/PATCH named exports) that contain no
-  apparent authentication check. False-positive surface is high: many
-  routes are intentionally public (e.g., public API endpoints, health
-  checks, webhook receivers). A match requires human review to confirm
-  whether the endpoint should be protected.
-
-  Supports both Pages Router (export default function handler) and
-  App Router (export async function GET/POST/PUT/DELETE/PATCH) patterns.
-  Authentication libraries detected include NextAuth (getSession,
-  getServerSession), next-auth v5 (auth()), withAuth higher-order
-  component, and custom verifyToken/checkAuth patterns.
-remediation: "Use getServerSession() (NextAuth v4) or auth() (NextAuth v5) at the start of every protected API route. For App Router, use middleware.ts with the auth() wrapper to protect entire route groups."
+      description: No authentication check found in the file
+description: |
+  Detects Next.js API route handlers (both Pages Router default exports and App Router GET/POST/PUT/DELETE/PATCH named exports) that contain no apparent authentication check. False-positive surface is high: many routes are intentionally public (e.g., public API endpoints, health checks, webhook receivers). A match requires human review to confirm whether the endpoint should be protected.
+  Supports both Pages Router (export default function handler) and App Router (export async function GET/POST/PUT/DELETE/PATCH) patterns. Authentication libraries detected include NextAuth (getSession, getServerSession), next-auth v5 (auth()), withAuth higher-order component, and custom verifyToken/checkAuth patterns.
+remediation: Use getServerSession() (NextAuth v4) or auth() (NextAuth v5) at the start of every protected API route. For App Router, use middleware.ts with the auth() wrapper to protect entire route groups.
 ai_guidance:
   watch_for:
-    - "Public API routes (health checks, webhook receivers, OAuth callbacks, public content endpoints) are intentionally unauthenticated and are the primary false-positive source."
-    - "Authentication enforced at the middleware layer (middleware.ts with matcher config) will not appear in the individual route file."
-    - "App Router with the auth() wrapper at the layout or middleware level provides route-group-level protection not visible here."
+    - Public API routes (health checks, webhook receivers, OAuth callbacks, public content endpoints) are intentionally unauthenticated and are the primary false-positive source.
+    - Authentication enforced at the middleware layer (middleware.ts with matcher config) will not appear in the individual route file.
+    - App Router with the auth() wrapper at the layout or middleware level provides route-group-level protection not visible here.
   references:
-    - title: "NextAuth.js - Protecting Routes"
-      url: "https://next-auth.js.org/tutorials/securing-pages-and-api-routes"
-    - title: "OWASP Top 10:2021 A01 - Broken Access Control"
-      url: "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
-    - title: "Next.js Route Handlers"
-      url: "https://nextjs.org/docs/app/building-your-application/routing/route-handlers"
-  related_rule_ids: ["broken-object-level-authz-001"]
+    - title: NextAuth.js - Protecting Routes
+      url: https://next-auth.js.org/tutorials/securing-pages-and-api-routes
+    - title: OWASP Top 10:2021 A01 - Broken Access Control
+      url: https://owasp.org/Top10/A01_2021-Broken_Access_Control/
+    - title: Next.js Route Handlers
+      url: https://nextjs.org/docs/app/building-your-application/routing/route-handlers
+  related_rule_ids:
+    - broken-object-level-authz-001
 test_cases:
   - type: true_positive
-    fixture: "tp.ts"
-    description: "App Router POST handler with no auth check"
+    fixture: tp.ts
+    description: App Router POST handler with no auth check
     code: |
       export async function POST(request: Request) {
         const body = await request.json();
@@ -60,8 +54,8 @@ test_cases:
         return Response.json({ ok: true });
       }
   - type: true_negative
-    fixture: "tn.ts"
-    description: "App Router POST handler with getServerSession auth check"
+    fixture: tn.ts
+    description: App Router POST handler with getServerSession auth check
     code: |
       import { getServerSession } from 'next-auth';
       export async function POST(request: Request) {

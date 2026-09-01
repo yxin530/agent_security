@@ -72,14 +72,10 @@
     },
     "detection": {
       "type": "object",
-      "required": ["extensions", "conditions", "scope"],
+        "required": ["conditions", "scope"],
       "additionalProperties": false,
       "properties": {
         "file_patterns": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
-        "extensions": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
         "conditions": {
           "type": "array",
           "items": {
@@ -134,6 +130,10 @@
     },
     "detection_limitations": {
       "type": "string"
+    },
+    "runtime": {
+      "type": "boolean",
+      "description": "Whether this rule is safe and intended to be evaluated against runtime/event JSON. Defaults to false."
     }
   }
 }

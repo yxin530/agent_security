@@ -19,10 +19,6 @@ maps_to:
     - LLM02:2025
   atlas: AML.T0048
 detection:
-  extensions:
-    - .js
-    - .ts
-    - .py
   file_patterns:
     - '*.js'
     - '*.ts'

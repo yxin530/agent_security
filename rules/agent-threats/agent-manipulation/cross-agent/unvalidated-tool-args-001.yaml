@@ -17,12 +17,6 @@ detection:
     - '**/*.py'
     - '**/*.php'
     - '**/*.go'
-  extensions:
-    - .js
-    - .ts
-    - .py
-    - .php
-    - .go
   scope: line
   logic: OR
   conditions:
@@ -41,3 +35,4 @@ test_cases:
     code: const command = allowlist(toolCall.arguments.command); exec(command);
 confidence: heuristic
 detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.
+runtime: true
