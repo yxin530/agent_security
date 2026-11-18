@@ -1,1 +1,1 @@
-const gKey = "AIzaFAKE1234567890123456789012345678901";
+const gKey = "AIza{{FAKE:35}}";
