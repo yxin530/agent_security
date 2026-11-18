@@ -1,1 +1,1 @@
-const key = 'FAKEsk-ant-abcdefghijklmnopqrstuv';
+const key = 'sk-ant-FAKEabcdefghijklmnopqrstuv';

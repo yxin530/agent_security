@@ -2,6 +2,7 @@ id: missing-consent-collection-001
 title: Missing Consent Collection in Form/Model
 severity: medium
 category: appsec
+confidence: heuristic
 detection_tier: regex
 scope: language-specific
 maps_to:
@@ -17,9 +18,9 @@ detection:
   scope: file
   logic: AND
   conditions:
-    - pattern: ic_?number|nric|passport|full_?name|date_?of_?birth|phone|email|address
+    - pattern: '\b(ic_?number|nric|mykad|passport_?no|date_?of_?birth|dob)\b'
       flags: i
-      description: PII field name present
+      description: PII identifier token present
     - pattern: consent|agreed|accepted|privacyAccepted|termsAccepted
       flags: i
       negate: true
@@ -32,6 +33,7 @@ ai_guidance:
     - Multi-step forms, separate consent pages, and explicit opt-in API endpoints are legitimate patterns that would reduce this to a false positive.
   references: []
   related_rule_ids: []
+detection_limitations: As a regex-based heuristic, this rule flags identifier tokens without consent fields in the same file.
 test_cases:
   - type: true_positive
     fixture: tp.js
@@ -52,3 +54,8 @@ test_cases:
         phone: String,
         consentGiven: { type: Boolean, required: true }
       });
+  - type: true_negative
+    fixture: tn-server-address.js
+    description: Server address call without consent does not trigger
+    code: |
+      const addr = server.address();

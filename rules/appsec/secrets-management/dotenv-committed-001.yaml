@@ -1,0 +1,60 @@
+id: dotenv-committed-001
+title: Environment File Committed to Repository
+severity: high
+category: secrets-management
+confidence: high
+detection_tier: regex
+scope: language-specific
+maps_to:
+  owasp:
+    - A07:2021
+  pdpa: Section 25, Personal Data Protection Act 2010 (as amended)
+detection:
+  file_patterns:
+    - '**/.env'
+    - '**/.env.local'
+    - '**/.env.production'
+    - '**/*.env'
+    - '**/*.env.local'
+    - '**/*.env.production'
+  scope: file
+  logic: OR
+  report: first
+  conditions:
+    - pattern: '.*'
+      description: Any content in committed dotenv file
+description: |
+  Detects committed .env, .env.local, or .env.production files in the repository. These files typically contain sensitive configuration secrets, API keys, and database credentials and should be ignored via .gitignore. Note that template files like .env.example or .env.sample are excluded.
+remediation: Add .env, .env.local, and .env.production to .gitignore and remove them from version control history using git rm --cached.
+ai_guidance:
+  watch_for:
+    - Committed credentials inside dotenv files.
+  references:
+    - title: OWASP Top 10:2021 A07 - Identification and Authentication Failures
+      url: https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/
+  related_rule_ids:
+    - secret-assignment-001
+    - nextjs-exposed-env-001
+  reasoning_notes: Scoped strictly to real environment files, ignoring example templates.
+detection_limitations: Matches presence and content of specific filenames.
+test_cases:
+  - type: true_positive
+    fixture: tp.env
+    description: Committed .env file
+    code: API_KEY=FAKE_EXAMPLE_SECRET_12345
+  - type: true_positive
+    fixture: tp.env.local
+    description: Committed .env.local file
+    code: SECRET_VAL=FAKE_EXAMPLE_LOCAL_SECRET
+  - type: true_positive
+    fixture: tp.env.production
+    description: Committed .env.production file
+    code: PROD_SECRET=FAKE_EXAMPLE_PROD_SECRET
+  - type: true_negative
+    fixture: tn.env.example
+    description: Example dotenv file should not trigger
+    code: API_KEY=your_key_here
+  - type: true_negative
+    fixture: tn.env.sample
+    description: Sample dotenv file should not trigger
+    code: API_KEY=your_key_here

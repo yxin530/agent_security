@@ -42,7 +42,7 @@ ai_guidance:
     - title: OWASP Top 10:2021 A07 - Identification and Authentication Failures
       url: https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/
   related_rule_ids:
-    - hardcoded-secret-001
+    - secret-assignment-001
     - hardcoded-llm-key-001
 test_cases:
   - type: true_positive

@@ -1,0 +1,1 @@
+const key = "AKIAFAKE1234567890AB";

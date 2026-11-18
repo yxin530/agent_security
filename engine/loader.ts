@@ -187,8 +187,15 @@ function validateThreatTaxonomy(rulesDir: string, rules: Rule[]): void {
   }
 }
 
-function validateRelatedRules(rules: Rule[]): void {
+function validateRelatedRules(rulesDir: string, rules: Rule[]): void {
   const ids = new Set(rules.map(rule => rule.id));
+  const aliasPath = path.join(rulesDir, 'aliases.json');
+  if (fs.existsSync(aliasPath)) {
+    try {
+      const aliases = JSON.parse(fs.readFileSync(aliasPath, 'utf8'));
+      for (const k of Object.keys(aliases)) ids.add(k);
+    } catch {}
+  }
   for (const rule of rules) for (const related of rule.ai_guidance?.related_rule_ids ?? []) {
     if (!ids.has(related)) throw new LoadError(`Rule '${rule.id}' references missing related rule '${related}'`);
   }
@@ -312,7 +319,7 @@ export function loadRules(rulesDir: string): Rule[] {
   validateAliases(rulesDir, rules);
   validateFrameworkDocs(rulesDir, rules);
   validateThreatTaxonomy(rulesDir, rules);
-  validateRelatedRules(rules);
+  validateRelatedRules(rulesDir, rules);
   return rules;
 }
 

@@ -11,7 +11,8 @@ export interface McpConfig extends Limits {
   loggingLevel: 'silent' | 'info' | 'debug' | 'audit';
   auditLogPath?: string;
   redactionEnabled: boolean;
-  allowedClientIds?: string[];
+  expectedClientIds?: string[];
+  allowedClientIds?: string[]; // Deprecated alias for expectedClientIds
   scanRateLimitPerMinute?: number;
 }
 
@@ -24,6 +25,15 @@ export function loadConfig(): McpConfig {
   const root = path.resolve(__dirname, '..');
   const configuredRoots = file.allowedScanRoots ?? (process.env.AGENT_SECURITY_MCP_ALLOWED_ROOTS?.split(path.delimiter).filter(Boolean) ?? []);
   if (configuredRoots.length === 0) throw new Error('MCP server requires explicit allowedScanRoots configuration');
+
+  let expectedClientIds = file.expectedClientIds;
+  if (file.allowedClientIds) {
+    console.error('Warning: allowedClientIds is deprecated, use expectedClientIds instead');
+    if (!expectedClientIds) {
+      expectedClientIds = file.allowedClientIds;
+    }
+  }
+
   return {
     ruleDirectory: path.resolve(file.rulesPath ?? file.ruleDirectory ?? path.join(root, 'rules')),
     rulesPath: file.rulesPath ? path.resolve(file.rulesPath) : undefined,
@@ -36,6 +46,7 @@ export function loadConfig(): McpConfig {
     loggingLevel: file.loggingLevel ?? 'info',
     auditLogPath: file.auditLogPath ? path.resolve(file.auditLogPath) : undefined,
     redactionEnabled: file.redactionEnabled ?? true,
+    expectedClientIds,
     allowedClientIds: file.allowedClientIds,
     scanRateLimitPerMinute: file.scanRateLimitPerMinute,
   };

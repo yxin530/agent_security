@@ -101,6 +101,10 @@
         "entropy_check": {
           "type": "object",
           "additionalProperties": true
+        },
+        "report": {
+          "type": "string",
+          "enum": ["all", "first"]
         }
       }
     },
@@ -126,7 +130,10 @@
     },
     "confidence": {
       "type": "string",
-      "enum": ["heuristic", "exact"]
+      "enum": ["heuristic", "exact", "high", "medium"]
+    },
+    "default_enabled": {
+      "type": "boolean"
     },
     "detection_limitations": {
       "type": "string"

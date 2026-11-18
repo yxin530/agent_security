@@ -2,6 +2,7 @@ id: hardcoded-llm-key-001
 title: Hardcoded LLM Provider Key
 severity: critical
 category: model-security
+confidence: high
 detection_tier: regex
 scope: language-agnostic
 maps_to:
@@ -14,19 +15,37 @@ detection:
   scope: line
   logic: OR
   conditions:
-    - pattern: (sk-ant-|sk-proj-|sk-[A-Za-z0-9]{20,})[A-Za-z0-9_-]*
-      flags: i
+    - pattern: '\b(?:sk-ant-api03-[A-Za-z0-9_-]{20,}|sk-ant-[A-Za-z0-9_-]{20,})\b'
+      description: Anthropic API key
+    - pattern: '\b(?:sk-proj-[A-Za-z0-9_-]{20,}|sk-svcacct-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{20,})\b'
+      description: OpenAI API key
+    - pattern: '\bAIza[0-9A-Za-z_-]{35}\b'
+      description: Google AI API key
+    - pattern: '\bhf_[A-Za-z0-9]{34,}\b'
+      description: HuggingFace access token
 description: Detects common LLM provider key prefixes in text, including client-side reachable files.
 remediation: Load provider keys from a server-side secret manager and keep them out of client bundles.
+ai_guidance:
+  watch_for:
+    - Dynamic key construction or split strings.
+  references:
+    - title: OWASP LLM02 Sensitive Information Disclosure
+      url: https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/
+  related_rule_ids:
+    - secret-assignment-001
+    - secret-provider-prefix-001
 test_cases:
   - type: true_positive
     fixture: vulnerable.js
     description: Fake LLM key in frontend source
-    code: const key = 'FAKEsk-ant-abcdefghijklmnopqrstuv';
+    code: const key = 'sk-ant-FAKEabcdefghijklmnopqrstuv123456';
   - type: true_negative
     fixture: safe.js
     description: LLM key loaded from environment
     code: const key = process.env.ANTHROPIC_API_KEY;
-confidence: heuristic
-detection_limitations: As a regex-based heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if variables are reassigned or obfuscated, and false positives if safe wrapper functions or benign logging are used on the same line.
+  - type: true_negative
+    fixture: tn-risk-assessment.ts
+    description: Identifier containing risk-assessment should not fire
+    code: const risk-assessment = true; const task-item = "clean";
+detection_limitations: Case-sensitive prefix match anchored to word boundary. Obfuscated strings will not be detected.
 runtime: true

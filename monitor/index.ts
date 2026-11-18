@@ -1,8 +1,12 @@
 import { loadRules, Rule } from '../engine/loader';
 import { Finding } from '../engine/scan';
+import { computeFingerprint } from '../core/findings';
 import { toolCallEventSchema } from './schemas/tool-call.schema';
 import { llmInputEventSchema } from './schemas/llm-input.schema';
 import { llmOutputEventSchema } from './schemas/llm-output.schema';
+import { detectMalaysianIC, detectMalaysianPhone } from './validators';
+
+export { detectMalaysianIC, detectMalaysianPhone } from './validators';
 
 export interface RuntimeEvent { type: 'tool-call' | 'llm-input' | 'llm-output'; data: string; }
 
@@ -28,35 +32,56 @@ export function inspectRuntimeEvent(rulesDir: string, event: RuntimeEvent, ruleI
     });
     const hit = (rule.detection.logic ?? 'AND') === 'OR' ? matches.some(Boolean) : matches.every(Boolean);
     if (!hit) continue;
-    findings.push({ ruleId: rule.id, title: rule.title, severity: rule.severity, category: rule.category,
-      file: '<runtime>', line: 1, column: 1, message: rule.description.split('\n')[0], remediation: rule.remediation,
-      mapsTo: rule.maps_to, detectionTier: rule.detection_tier, source: 'runtime' });
+
+    const fp = computeFingerprint(rule.id, '<runtime>', event.data);
+    findings.push({
+      ruleId: rule.id,
+      title: rule.title,
+      severity: rule.severity,
+      confidence: (rule as any).confidence ?? 'high',
+      category: rule.category,
+      file: '<runtime>',
+      line: 1,
+      column: 1,
+      message: rule.description.split('\n')[0],
+      remediation: rule.remediation,
+      fingerprint: fp,
+      mapsTo: rule.maps_to,
+      detectionTier: rule.detection_tier,
+      source: 'runtime'
+    });
   }
 
   if (event.type === 'llm-output' && (!ruleIds || ruleIds.includes('pii-leakage-in-output'))) {
     try {
       const parsed = JSON.parse(event.data);
       const content = parsed.content || '';
-      
-      const piiPatterns = [
-        { name: 'Malaysian IC', regex: /\d{6}-\d{2}-\d{4}/ },
-        { name: 'Phone Number', regex: /\+60\d{7,10}/ },
-        { name: 'Email Address', regex: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/ }
-      ];
-      
-      const matchedTypes = piiPatterns.filter(p => p.regex.test(content)).map(p => p.name);
-      
+
+      const matchedTypes: string[] = [];
+      if (detectMalaysianIC(content)) {
+        matchedTypes.push('Malaysian IC');
+      }
+      if (detectMalaysianPhone(content)) {
+        matchedTypes.push('Phone Number');
+      }
+      if (/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(content)) {
+        matchedTypes.push('Email Address');
+      }
+
       if (matchedTypes.length > 0) {
+        const fp = computeFingerprint('pii-leakage-in-output', '<runtime>', content);
         findings.push({
           ruleId: 'pii-leakage-in-output',
           title: 'PII Leakage in LLM Output',
           severity: 'medium',
+          confidence: 'heuristic',
           category: 'model-abuse',
           file: '<runtime>',
           line: 1,
           column: 1,
           message: `Detected PII patterns in LLM output: ${matchedTypes.join(', ')} (PDPA Section 9 data-integrity principle)`,
           remediation: 'Ensure LLM output is scrubbed of PII before being exposed or stored.',
+          fingerprint: fp,
           mapsTo: { owasp: ['A02:2021'], owasp_llm: ['LLM02:2025'], pdpa: 'Section 9' },
           detectionTier: 'regex',
           source: 'runtime'

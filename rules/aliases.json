@@ -1,4 +1,5 @@
 {
+  "hardcoded-secret-001": "secret-assignment-001",
   "sql-injection-001": "sql-injection-js-001",
   "wildcard-cors-001": "wildcard-cors-js-001",
   "missing-rate-limit-001": "missing-rate-limit-js-001",

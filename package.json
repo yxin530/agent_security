@@ -1,6 +1,6 @@
 {
   "name": "@yxin530/agent-security-engine",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yxin530/agent_security.git"
@@ -21,27 +21,25 @@
   "files": [
     "dist",
     "bin",
-    "monitor",
-    "scripts",
-    "tests/fixtures",
-    "tests/adversarial",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "scan": "node dist/engine/scan.js",
     "validate:rules": "node dist/engine/loader.js --validate",
     "test:rules": "node dist/engine/test-runner.js",
     "verify:package": "sh scripts/verify-package.sh",
-    "test": "node --test",
-    "build": "tsc && mkdir -p dist/rules dist/docs/owasp dist/docs/frameworks dist/docs/agent-threats && cp -R rules/. dist/rules/ && cp docs/owasp/*.md dist/docs/owasp/ && cp docs/frameworks/*.md dist/docs/frameworks/ && cp docs/agent-threats/*.md dist/docs/agent-threats/"
+    "test": "node --test \"tests/**/*.test.js\"",
+    "check-versions": "node scripts/check-versions.js",
+    "build": "tsc && rm -rf dist/rules && mkdir -p dist/rules dist/docs/owasp dist/docs/frameworks dist/docs/agent-threats && cp -R rules/. dist/rules/ && cp docs/owasp/*.md dist/docs/owasp/ && cp docs/frameworks/*.md dist/docs/frameworks/ && cp docs/agent-threats/*.md dist/docs/agent-threats/"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
     "ajv": "8.20.0",
     "js-yaml": "5.2.3",
-    "zod": "^3.25.76"
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9",

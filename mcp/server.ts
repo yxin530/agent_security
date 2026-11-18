@@ -16,6 +16,7 @@ import { safeError } from './security/redaction';
 import { writeAudit } from './logging/audit-log';
 import { diagnostic } from './logging/diagnostics';
 import { RateLimiter } from './security/rate-limit';
+import { getVersion } from '../core/version';
 
 export function createServer(config = loadConfig()): McpServer {
   if (config.rulesPath) {
@@ -24,12 +25,13 @@ export function createServer(config = loadConfig()): McpServer {
     const missing = builtIn.filter(id => !loaded.has(id));
     if (missing.length) diagnostic(`${missing.length} built-in MCP rules are not loaded because a custom rulesPath is active`);
   }
-  const server = new McpServer({ name: 'agent-security', version: '0.9.0' }, { capabilities: { tools: {}, resources: {} } });
+  const server = new McpServer({ name: 'agent-security', version: getVersion() }, { capabilities: { tools: {}, resources: {} } });
   
-  if (config.allowedClientIds && config.allowedClientIds.length > 0) {
+  const expectedClients = config.expectedClientIds ?? config.allowedClientIds;
+  if (expectedClients && expectedClients.length > 0) {
     const clientId = process.env.X_AGENT_ID || process.env.MCP_CLIENT_ID;
-    if (!clientId || !config.allowedClientIds.includes(clientId)) {
-      throw new Error("client not authorized");
+    if (!clientId || !expectedClients.includes(clientId)) {
+      throw new Error("client ID does not match expectedClientIds (sanity check failed)");
     }
   }
 

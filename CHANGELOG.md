@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.10.0
+
+- **M1: Correctness & Honesty**:
+  - Engine now reports all matches per file (`ENG-01`), supporting `detection.report: first` (`ENG-02`) with accurate 1-indexed column locations pointing at non-negated matches (`ENG-06`).
+  - Added deduplication (`ENG-03`) and stable 16-character SHA-256 finding fingerprints (`ENG-04`).
+  - Implemented standard exit codes: `0` for clean, `1` for findings at or above `--fail-on` (default `high`), `2` for configuration/runtime errors (`ENG-05`).
+  - Split `hardcoded-secret-001` into `secret-assignment-001`, `secret-provider-prefix-001`, `hardcoded-llm-key-001`, and added `dotenv-committed-001` with `aliases.json` compatibility mapping (`SEC-01`..`SEC-06`).
+  - Enforced `FAKE`/`EXAMPLE` markers for all test secrets (`SEC-06`).
+  - Tightened `missing-consent-collection-001` to identifier-like tokens to prevent false positives on bare `address`, `email`, `phone` (`PROF-03`).
+  - Refactored MCP server: renamed `allowedClientIds` to `expectedClientIds` (documented as sanity check, not authentication) (`MCP-01`) and read version dynamically from `package.json` (`MCP-04`).
+  - Enhanced runtime monitor with Malaysian IC date validation and comprehensive Malaysian phone detection (`MON-01`, `MON-02`).
+  - Streamlined package distribution files list to exclude test fixtures (`REL-02`).
+  - Single version source in `package.json` validated by `scripts/check-versions.js` (`REL-01`).
+  - Added Limitations section to README and removed stale version claims (`DOC-01`, `DOC-02`).
+
 ## 0.9.4
 
 - Fixed `ajv` schema validation errors caused by the addition of the new `confidence` and `detection_limitations` metadata fields.

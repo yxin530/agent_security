@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { loadRules, Rule } from './loader';
 import { scan } from './scan';
 
@@ -14,7 +15,24 @@ let failed = 0;
 function runCase(rule: Rule, type: 'true_positive' | 'true_negative', fixture: string): void {
   const fixturePath = path.join(fixturesDir, rule.id, fixture);
   if (!fs.existsSync(fixturePath)) throw new Error(`Missing fixture: ${fixturePath}`);
-  const findings = scan(rulesDir, path.dirname(fixturePath)).filter(f => f.ruleId === rule.id && f.file === path.basename(fixturePath));
+  const content = fs.readFileSync(fixturePath, 'utf8');
+  const expanded = content.replace(/\{\{FAKE:(\d+)\}\}/g, (_placeholder, countText: string) => {
+    const count = Number(countText);
+    if (!Number.isInteger(count) || count < 4 || count > 256) throw new Error(`Invalid synthetic fixture token length: ${fixture}`);
+    return `FAKE${'0'.repeat(count - 4)}`;
+  });
+  let findings;
+  if (expanded !== content) {
+    const temporaryFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-security-fixture-'));
+    try {
+      fs.writeFileSync(path.join(temporaryFixtureDir, path.basename(fixturePath)), expanded);
+      findings = scan(rulesDir, temporaryFixtureDir).filter(f => f.ruleId === rule.id && f.file === path.basename(fixturePath));
+    } finally {
+      fs.rmSync(temporaryFixtureDir, { recursive: true, force: true });
+    }
+  } else {
+    findings = scan(rulesDir, path.dirname(fixturePath)).filter(f => f.ruleId === rule.id && f.file === path.basename(fixturePath));
+  }
   const detected = findings.length > 0;
   const expected = type === 'true_positive';
   if (detected === expected) { passed++; console.log(`PASS ${rule.id} ${type} ${fixture}`); }
@@ -38,16 +56,22 @@ function runAdversarial(): void {
   if (failedAdversarial) failed += failedAdversarial;
 }
 
-function checkFixtureIntegrity(rule: Rule, fixture: string): void {
-  if (rule.id !== 'hardcoded-secret-001') return;
-  const content = fs.readFileSync(path.join(fixturesDir, rule.id, fixture), 'utf8');
-  const secret = content.match(/(?:api[_-]?key|secret|password|token|credential)\s*=\s*["']([^"']{8,})["']/i)?.[1];
-  if (secret && !secret.startsWith('FAKE')) throw new Error(`Fixture contains a non-FAKE secret: ${fixture}`);
+function checkFixtureIntegrity(rule: Rule, type: string, fixture: string): void {
+  if (rule.category !== 'secrets-management' || type !== 'true_positive') return;
+  const fixturePath = path.join(fixturesDir, rule.id, fixture);
+  if (!fs.existsSync(fixturePath)) return;
+  const content = fs.readFileSync(fixturePath, 'utf8');
+  if (!content.includes('FAKE') && !content.includes('EXAMPLE')) {
+    throw new Error(`Fixture contains a secret without FAKE or EXAMPLE marker: ${rule.id}/${fixture} (SEC-06)`);
+  }
 }
 
 try {
   for (const rule of loadRules(rulesDir)) {
-    for (const testCase of rule.test_cases) { checkFixtureIntegrity(rule, testCase.fixture); runCase(rule, testCase.type, testCase.fixture); }
+    for (const testCase of rule.test_cases) {
+      checkFixtureIntegrity(rule, testCase.type, testCase.fixture);
+      runCase(rule, testCase.type, testCase.fixture);
+    }
   }
   runAdversarial();
 } catch (error) {

@@ -10,12 +10,12 @@ if (command === '--version' || command === '-v') {
   process.exit(0);
 }
 if (command === '--help' || command === '-h') {
-  console.log('Usage: agent-security-engine [--version] | scan --target <path> [--format json|terminal]\nMCP server: agent-security-mcp (see docs/mcp/architecture.md)');
+  console.log('Usage: agent-security-engine [--version] | scan --target <path> [--format json|text] [--fail-on <severity>]\nMCP server: agent-security-mcp (see docs/mcp/architecture.md)');
   process.exit(0);
 }
 if (command !== 'scan') {
-  console.error('Usage: agent-security-engine [--version] | scan --target <path> [--format json|terminal]\nMCP server: agent-security-mcp (see docs/mcp/architecture.md)');
-  process.exit(1);
+  console.error('Usage: agent-security-engine [--version] | scan --target <path> [--format json|text] [--fail-on <severity>]\nMCP server: agent-security-mcp (see docs/mcp/architecture.md)');
+  process.exit(2);
 }
-const result = spawnSync(process.execPath, [path.join(root, 'dist/engine/scan.js'), '--rules', path.join(root, 'dist/rules'), ...args], { stdio: 'inherit' });
-process.exit(result.status ?? 1);
+const result = spawnSync(process.execPath, [path.join(root, 'dist/cli/scan.js'), '--rules', path.join(root, 'dist/rules'), ...args], { stdio: 'inherit' });
+process.exit(result.status ?? 2);

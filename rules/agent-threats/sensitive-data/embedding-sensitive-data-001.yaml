@@ -52,7 +52,7 @@ ai_guidance:
   related_rule_ids:
     - agent-credential-exposure-001
     - sensitive-retrieval-in-prompt-001
-    - hardcoded-secret-001
+    - secret-assignment-001
   reasoning_notes: Keyword matching detects recognizable field names only. Data stored in variables with non-sensitive names is not visible to this rule.
 detection_limitations: As a line-scope regex heuristic, this rule cannot perform data-flow analysis. It may produce false negatives if the variable name does not match recognized sensitive field names, and false positives if a sanitization function not matching the keyword list is used.
 confidence: heuristic
