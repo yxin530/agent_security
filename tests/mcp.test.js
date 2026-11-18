@@ -48,10 +48,18 @@ test('symlinks escaping allowed roots are rejected', () => {
 
 test('denylist categories are individually rejected', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agent-security-deny-'));
-  const categories = ['.ssh', '.aws', '.azure', '.gnupg', '.npmrc', '.docker', '.git'];
+  const categories = ['.ssh', '.aws', '.azure', '.gnupg', '.npmrc', '.docker', '.kube', '.git-credentials', '.netrc', '.pypirc', '.git'];
   for (const cat of categories) {
     const dir = path.join(root, cat);
     fs.mkdirSync(dir);
     assert.throws(() => validateScanTarget(dir, { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), /denied by security policy/);
+  }
+  const gcloud = path.join(root, '.config', 'gcloud');
+  fs.mkdirSync(gcloud, { recursive: true });
+  assert.throws(() => validateScanTarget(gcloud, { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), /denied by security policy/);
+  for (const file of ['id_rsa', 'client.pem', 'signing.key']) {
+    const full = path.join(root, file);
+    fs.writeFileSync(full, 'EXAMPLE');
+    assert.throws(() => validateScanTarget(full, { allowedScanRoots: [root], maxScanSizeBytes: 1000 }), /denied by security policy/);
   }
 });

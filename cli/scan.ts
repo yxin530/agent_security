@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { scanDetailed } from '../core/scan-session';
+import { scanDetailedInWorkers } from '../core/scan-session';
 import { formatTerminal } from '../reporters/text';
 import { formatJson } from '../reporters/json';
 import { ExitCode } from '../core/exit-codes';
@@ -32,7 +32,7 @@ function parseArgs(args: string[]): Record<string, string> {
   return result;
 }
 
-export function runCli(argv = process.argv.slice(2)): number {
+export async function runCli(argv = process.argv.slice(2)): Promise<number> {
   const parsed = parseArgs(argv);
 
   const targetDir = parsed.target ? path.resolve(parsed.target) : process.cwd();
@@ -56,7 +56,7 @@ export function runCli(argv = process.argv.slice(2)): number {
   }
 
   try {
-    const result = scanDetailed(rulesDir, targetDir, {
+    const result = await scanDetailedInWorkers(rulesDir, targetDir, {
       timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : undefined
     });
 
@@ -83,6 +83,5 @@ export function runCli(argv = process.argv.slice(2)): number {
 }
 
 if (require.main === module) {
-  const code = runCli();
-  process.exit(code);
+  void runCli().then(code => { process.exitCode = code; });
 }

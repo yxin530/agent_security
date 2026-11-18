@@ -5,6 +5,9 @@ import { toolCallEventSchema } from './schemas/tool-call.schema';
 import { llmInputEventSchema } from './schemas/llm-input.schema';
 import { llmOutputEventSchema } from './schemas/llm-output.schema';
 import { detectMalaysianIC, detectMalaysianPhone } from './validators';
+import { createRegex } from '../matchers/regex-engine';
+import { Worker } from 'node:worker_threads';
+import * as path from 'node:path';
 
 export { detectMalaysianIC, detectMalaysianPhone } from './validators';
 
@@ -19,7 +22,7 @@ export function validateRuntimeEvent(eventType: RuntimeEvent['type'], data: stri
   if (!result.success) throw new Error('invalid runtime event shape');
 }
 
-export function inspectRuntimeEvent(rulesDir: string, event: RuntimeEvent, ruleIds?: string[]): Finding[] {
+export function inspectRuntimeEventInline(rulesDir: string, event: RuntimeEvent, ruleIds?: string[]): Finding[] {
   validateRuntimeEvent(event.type, event.data);
   const findings: Finding[] = [];
   for (const rule of loadRules(rulesDir)) {
@@ -27,7 +30,7 @@ export function inspectRuntimeEvent(rulesDir: string, event: RuntimeEvent, ruleI
     if (ruleIds && !ruleIds.includes(rule.id)) continue;
     const conditions = rule.detection.conditions;
     const matches = conditions.map(condition => {
-      const matched = new RegExp(condition.pattern, condition.flags ?? '').test(event.data);
+      const matched = createRegex(condition.pattern, condition.flags ?? '').test(event.data);
       return condition.negate ? !matched : matched;
     });
     const hit = (rule.detection.logic ?? 'AND') === 'OR' ? matches.some(Boolean) : matches.every(Boolean);
@@ -93,4 +96,40 @@ export function inspectRuntimeEvent(rulesDir: string, event: RuntimeEvent, ruleI
   }
 
   return findings;
+}
+
+export function inspectRuntimeEvent(
+  rulesDir: string,
+  event: RuntimeEvent,
+  ruleIds?: string[],
+  options: { maxEventBytes?: number; timeoutMs?: number } = {}
+): Promise<Finding[]> {
+  const maxEventBytes = options.maxEventBytes ?? 1_000_000;
+  if (Buffer.byteLength(event.data, 'utf8') > maxEventBytes) return Promise.reject(new Error('runtime event exceeds configured size limit'));
+  const timeoutMs = options.timeoutMs ?? 30_000;
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(path.join(__dirname, 'event-worker.js'), {
+      workerData: { rulesDir, event, ruleIds }
+    });
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      void worker.terminate().finally(() => reject(new Error('runtime event scan timed out')));
+    }, timeoutMs);
+    worker.once('message', (message: { findings?: Finding[]; error?: string }) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      void worker.terminate();
+      if (message.error) reject(new Error(message.error));
+      else resolve(message.findings ?? []);
+    });
+    worker.once('error', error => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(error);
+    });
+  });
 }

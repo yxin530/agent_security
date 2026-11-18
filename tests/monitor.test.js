@@ -15,19 +15,27 @@ assert.ok(findings.every(finding => finding.source === 'runtime'));
 assert.match(result.stderr, /unrecognized event type/);
 assert.match(result.stderr, /invalid runtime event/);
 
-test('runtime equivalents detect outbound LLM key and permissive tool grant observations', () => {
+test('runtime equivalents detect outbound LLM key and permissive tool grant observations', async () => {
   const rulesDir = path.join(__dirname, '..', 'dist', 'rules');
-  const key = inspectRuntimeEvent(rulesDir, { type: 'llm-output', data: '{"type":"llm_output","content":"Authorization Bearer sk-ant-abcdefghijklmnopqrstuv","timestamp":"2026-08-05T00:00:00Z"}' });
+  const key = await inspectRuntimeEvent(rulesDir, { type: 'llm-output', data: '{"type":"llm_output","content":"Authorization Bearer sk-ant-abcdefghijklmnopqrstuv","timestamp":"2026-08-05T00:00:00Z"}' });
   assert.ok(key.some(finding => finding.ruleId === 'hardcoded-llm-key-001' && finding.source === 'runtime'));
-  const grant = inspectRuntimeEvent(rulesDir, { type: 'tool-call', data: '{"type":"tool_call","name":"grant","args":{"tools":["*"]},"timestamp":"2026-08-05T00:00:00Z"}' });
+  const grant = await inspectRuntimeEvent(rulesDir, { type: 'tool-call', data: '{"type":"tool_call","name":"grant","args":{"tools":["*"]},"timestamp":"2026-08-05T00:00:00Z"}' });
   assert.ok(grant.some(finding => finding.ruleId === 'permissive-mcp-grant-001' && finding.source === 'runtime'));
 });
 
-test('runtime monitor does not execute static-only rules against event JSON', () => {
+test('runtime monitor does not execute static-only rules against event JSON', async () => {
   const rulesDir = path.join(__dirname, '..', 'dist', 'rules');
-  const findings = inspectRuntimeEvent(rulesDir, {
+  const findings = await inspectRuntimeEvent(rulesDir, {
     type: 'llm-output',
     data: '{"type":"llm_output","content":"db.query(`SELECT * FROM users WHERE id = ${userId}`)","timestamp":"2026-08-05T00:00:00Z"}'
   });
   assert.ok(!findings.some(finding => finding.ruleId === 'sql-injection-js-001'));
+});
+
+test('runtime monitor enforces the event size cap before starting a worker', async () => {
+  const rulesDir = path.join(__dirname, '..', 'dist', 'rules');
+  await assert.rejects(
+    inspectRuntimeEvent(rulesDir, { type: 'llm-input', data: 'x'.repeat(1024) }, undefined, { maxEventBytes: 100 }),
+    /runtime event exceeds configured size limit/
+  );
 });

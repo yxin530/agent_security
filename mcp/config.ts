@@ -14,6 +14,8 @@ export interface McpConfig extends Limits {
   expectedClientIds?: string[];
   allowedClientIds?: string[]; // Deprecated alias for expectedClientIds
   scanRateLimitPerMinute?: number;
+  maxConcurrentScans: number;
+  maxQueuedScans: number;
 }
 
 const ALL_TOOLS = ['scan_project', 'list_rules', 'get_rule', 'validate_rules', 'inspect_runtime_event'];
@@ -49,5 +51,7 @@ export function loadConfig(): McpConfig {
     expectedClientIds,
     allowedClientIds: file.allowedClientIds,
     scanRateLimitPerMinute: file.scanRateLimitPerMinute,
+    maxConcurrentScans: file.maxConcurrentScans ?? 1,
+    maxQueuedScans: file.maxQueuedScans ?? 4,
   };
 }

@@ -10,9 +10,11 @@ import {
 } from './findings';
 import { walkDirectory, SkippedFiles, WalkerOptions } from './walker';
 import { matchRule, compileConditions, CompiledRuleConditions } from '../matchers/regex';
+import { scanFilesInWorkers } from './worker-pool';
 
 export interface ScanOptions extends WalkerOptions {
   timeoutMs?: number;
+  workers?: number;
   enabledRules?: string[] | null;
   now?: () => number;
 }
@@ -46,6 +48,10 @@ function loadAliasMap(rulesDir: string): Record<string, string> {
   return {};
 }
 
+/**
+ * Legacy synchronous API retained for compatibility. It runs inline and cannot terminate a running RegExp.
+ * Use scanDetailedInWorkers for CLI, MCP, or any untrusted/custom rule pack.
+ */
 export function scanDetailed(rulesDir: string, targetDir: string, options: ScanOptions = {}): ScanResult {
   if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) {
     throw new Error(`Target must be an existing directory: ${targetDir}`);
@@ -99,6 +105,7 @@ export function scanDetailed(rulesDir: string, targetDir: string, options: ScanO
       const patterns = rule.detection.file_patterns ?? [];
       return patterns.some(pattern => matchesPattern(relative, pattern));
     });
+    const lines = content.split(/\r?\n/);
 
     if (applicableRules.length > 0) {
       scannedFiles++;
@@ -111,7 +118,7 @@ export function scanDetailed(rulesDir: string, targetDir: string, options: ScanO
       }
 
       const compiled = compiledMap.get(rule.id);
-      const matches = matchRule(rule, content, compiled);
+      const matches = matchRule(rule, content, compiled, lines);
 
       for (const m of matches) {
         const fp = computeFingerprint(rule.id, relative, m.lineText);
@@ -149,6 +156,30 @@ export function scanDetailed(rulesDir: string, targetDir: string, options: ScanO
   };
 }
 
+/** @deprecated Use scanDetailedInWorkers for untrusted or custom rule packs. */
 export function scan(rulesDir: string, targetDir: string, options: ScanOptions = {}): Finding[] {
   return scanDetailed(rulesDir, targetDir, options).findings;
+}
+
+/** Asynchronous scan path used by the CLI and MCP server. Rule matching runs only in terminable workers. */
+export async function scanDetailedInWorkers(rulesDir: string, targetDir: string, options: ScanOptions = {}): Promise<ScanResult> {
+  if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) {
+    throw new Error(`Target must be an existing directory: ${targetDir}`);
+  }
+  const started = Date.now();
+  const loadedRules = loadRules(rulesDir);
+  const aliasMap = loadAliasMap(rulesDir);
+  const enabled = options.enabledRules ? new Set(options.enabledRules.map(id => aliasMap[id] ?? id)) : null;
+  const rules = enabled ? loadedRules.filter(rule => enabled.has(rule.id)) : loadedRules;
+  const { files, skippedFiles } = walkDirectory(targetDir, options);
+  const totalTimeoutMs = options.timeoutMs ?? 30_000;
+  const remainingMs = Math.max(0, totalTimeoutMs - (Date.now() - started));
+  const result = await scanFilesInWorkers(rules, files, { timeoutMs: remainingMs, workers: options.workers });
+  return {
+    findings: result.findings,
+    truncated: result.truncated,
+    scannedFiles: result.scannedFiles,
+    skippedFiles,
+    durationMs: Date.now() - started
+  };
 }

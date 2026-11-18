@@ -6,6 +6,19 @@ source of truth going forward). Update this file, not a new one, as work
 completes — do not fork a new `v0.12-completion-status.md`; keep the
 version scope columns instead.
 
+## v0.10.0 Trust & Coverage (current implementation plan)
+
+| Milestone | Status | Notes |
+|---|---|---|
+| M1 — Correctness & honesty | complete | Build, 110-rule validation, 277 rule/adversarial cases, and 33 unit tests pass. Legacy MCP rule aliases and finding output contracts were repaired during continuation. |
+| M2 — Safety & performance | in progress | Worker-backed CLI/MCP/monitor matching, regex lint, bounded scan queue, walker caps, shared MCP size walking, and sensitive-path exclusions are implemented. Safety tests pass. Performance exit criterion is open: the all-rule 10,000-file / 51.2 MB benchmark took 38.5 s (20 s target). |
+| M3 — Schema v2, mappings & profiles | not started | Begin only after M2's performance gate is resolved. YAML package addition remains deferred until M3/M4 as requested. |
+| M4 — New coverage | not started | — |
+| M5 — Integration | not started | — |
+| M6 — Release hardening & benchmark | not started | — |
+
+Detailed work log: [v0.10 milestone progress](v0.10-milestone-progress.md).
+
 ---
 
 ## v0.20 Additions (Agentic-AI Defensive Coverage)

@@ -1,16 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { walkDirectory } from '../../core/walker';
 
 export interface PathPolicy {
   allowedScanRoots: string[];
   maxScanSizeBytes: number;
 }
 
-const DENY_SEGMENTS = new Set(['.ssh', '.aws', '.azure', '.gnupg', '.npmrc', '.docker']);
+const DENY_SEGMENTS = new Set(['.ssh', '.aws', '.azure', '.gnupg', '.npmrc', '.docker', '.kube', '.git-credentials', '.netrc', '.pypirc']);
 
 function isDenied(candidate: string): boolean {
   const parts = candidate.split(path.sep);
-  return parts.some(part => DENY_SEGMENTS.has(part) || part === '.git');
+  return parts.some((part, index) => DENY_SEGMENTS.has(part) || part === '.git' || /^id_rsa/.test(part) || /\.(?:pem|key)$/i.test(part) || (part === '.config' && parts[index + 1] === 'gcloud'));
 }
 
 export function validateScanTarget(target: string, policy: PathPolicy): string {
@@ -29,22 +30,5 @@ export function validateScanTarget(target: string, policy: PathPolicy): string {
 }
 
 export function preflightScanSize(target: string, policy: PathPolicy): void {
-  let total = 0;
-  const walk = (dir: string): void => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === '.git') continue;
-      const full = path.join(dir, entry.name);
-      if (entry.isSymbolicLink()) {
-        const real = fs.realpathSync(full);
-        if (isDenied(real)) throw new Error('scan contains a denied symlink');
-        continue;
-      }
-      if (entry.isDirectory()) walk(full);
-      else if (entry.isFile()) {
-        total += fs.statSync(full).size;
-        if (total > policy.maxScanSizeBytes) throw new Error('scan exceeds configured size limit');
-      }
-    }
-  };
-  walk(target);
+  walkDirectory(target, { maxTotalBytes: policy.maxScanSizeBytes });
 }

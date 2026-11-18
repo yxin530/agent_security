@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import Ajv from 'ajv';
+import { regexLintIssues } from '../matchers/regex-engine';
 
 // ── Interfaces ────────────────────────────────────────────────────────────────
 
@@ -248,6 +249,12 @@ function processFile(
 
   const rule = doc as Rule;
 
+  for (const [index, condition] of rule.detection.conditions.entries()) {
+    for (const issue of regexLintIssues(condition.pattern)) {
+      violations.push({ filePath, fieldPath: `detection.conditions[${index}].pattern`, message: issue });
+    }
+  }
+
   if (filePath.includes(`${path.sep}agent-threats${path.sep}`) && !rule.maps_to.owasp_llm && !rule.maps_to.atlas) {
     violations.push({ filePath, fieldPath: 'maps_to', message: 'agent-threat rules require maps_to.owasp_llm or maps_to.atlas' });
     return null;
@@ -321,6 +328,14 @@ export function loadRules(rulesDir: string): Rule[] {
   validateThreatTaxonomy(rulesDir, rules);
   validateRelatedRules(rulesDir, rules);
   return rules;
+}
+
+/** Resolve a legacy rule ID to its current ID using the validated alias map. */
+export function resolveRuleId(rulesDir: string, ruleId: string): string {
+  const aliasPath = path.join(rulesDir, 'aliases.json');
+  if (!fs.existsSync(aliasPath)) return ruleId;
+  const aliases = JSON.parse(fs.readFileSync(aliasPath, 'utf8')) as AliasMap;
+  return aliases[ruleId] ?? ruleId;
 }
 
 // ── CLI (--validate mode) ─────────────────────────────────────────────────────

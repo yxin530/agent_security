@@ -1,4 +1,5 @@
 import { Rule, DetectionCondition } from '../engine/loader';
+import { createRegex, RegexHandle, RegexMatch } from './regex-engine';
 
 export interface MatchSpan {
   line: number;
@@ -19,7 +20,7 @@ export function shannonEntropy(value: string): number {
   return entropy;
 }
 
-export function checkEntropy(rule: Rule, lineText: string, match?: RegExpExecArray | null): boolean {
+export function checkEntropy(rule: Rule, lineText: string, match?: RegexMatch | null): boolean {
   const check = rule.detection.entropy_check;
   if (!check) return true;
 
@@ -56,7 +57,7 @@ export function checkEntropy(rule: Rule, lineText: string, match?: RegExpExecArr
 
 export interface CompiledCondition {
   condition: DetectionCondition;
-  regex: RegExp;
+  regex: RegexHandle;
 }
 
 export interface CompiledRuleConditions {
@@ -71,7 +72,7 @@ export function compileConditions(rule: Rule): CompiledRuleConditions {
     let flags = cond.flags ?? '';
     // Ensure flags don't include global for simple testing
     flags = flags.replace(/[gy]/g, '');
-    const regex = new RegExp(cond.pattern, flags);
+    const regex = createRegex(cond.pattern, flags);
     if (!cond.negate && firstPositiveIndex === -1) {
       firstPositiveIndex = idx;
     }
@@ -87,7 +88,7 @@ function conditionMatches(compiledCond: CompiledCondition, text: string): boolea
   return condition.negate ? !matched : matched;
 }
 
-export function matchRule(rule: Rule, content: string, compiledConds?: CompiledRuleConditions): MatchSpan[] {
+export function matchRule(rule: Rule, content: string, compiledConds?: CompiledRuleConditions, precomputedLines?: string[]): MatchSpan[] {
   const scope = rule.detection.scope ?? 'line';
   const logic = rule.detection.logic ?? 'AND';
   const reportMode = (rule.detection as any).report ?? 'all'; // 'all' | 'first'
@@ -112,14 +113,14 @@ export function matchRule(rule: Rule, content: string, compiledConds?: CompiledR
     if (!firstPos) {
       // Pure negation rule (e.g. "missing X")
       if (checkEntropy(rule, content)) {
-        const firstLine = content.split(/\r?\n/)[0] || '';
+      const firstLine = (precomputedLines ?? content.split(/\r?\n/))[0] || '';
         results.push({ line: 1, column: 1, lineText: firstLine });
       }
       return results;
     }
 
     // Positive condition in file scope
-    const lines = content.split(/\r?\n/);
+    const lines = precomputedLines ?? content.split(/\r?\n/);
     const lineOffsets: number[] = [0];
     for (let i = 0; i < lines.length; i++) {
       lineOffsets.push(lineOffsets[i] + lines[i].length + 1);
@@ -142,14 +143,10 @@ export function matchRule(rule: Rule, content: string, compiledConds?: CompiledR
     }
 
     // Match all occurrences of the positive condition
-    let flags = firstPos.condition.flags ?? '';
-    if (!flags.includes('g')) flags += 'g';
-    flags = flags.replace(/y/g, '');
-    const globalRegex = new RegExp(firstPos.condition.pattern, flags);
-
-    let match: RegExpExecArray | null;
+    let offset = 0;
+    let match: RegexMatch | null;
     let found = false;
-    while ((match = globalRegex.exec(content)) !== null) {
+    while ((match = firstPos.regex.exec(content, offset)) !== null) {
       const pos = offsetToPosition(match.index);
       if (checkEntropy(rule, pos.lineText, match)) {
         results.push({
@@ -160,9 +157,7 @@ export function matchRule(rule: Rule, content: string, compiledConds?: CompiledR
         found = true;
         if (reportMode === 'first') break;
       }
-      if (match.index === globalRegex.lastIndex) {
-        globalRegex.lastIndex++;
-      }
+      offset = match.index + Math.max(match[0].length, 1);
     }
 
     if (!found && checkEntropy(rule, content)) {
@@ -173,7 +168,7 @@ export function matchRule(rule: Rule, content: string, compiledConds?: CompiledR
   }
 
   // Line scope
-  const lines = content.split(/\r?\n/);
+  const lines = precomputedLines ?? content.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const lineText = lines[i];
 
@@ -185,7 +180,7 @@ export function matchRule(rule: Rule, content: string, compiledConds?: CompiledR
 
     // Find the first non-negated condition that matched to get column
     let firstMatchingCond: CompiledCondition | null = null;
-    let matchExec: RegExpExecArray | null = null;
+    let matchExec: RegexMatch | null = null;
 
     for (const c of conditions) {
       if (!c.condition.negate) {

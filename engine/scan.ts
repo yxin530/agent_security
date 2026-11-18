@@ -14,6 +14,7 @@ export {
   ScanOptions,
   ScanResult,
   scanDetailed,
+  scanDetailedInWorkers,
   scan,
   matchesPattern
 } from '../core/scan-session';
@@ -34,6 +35,5 @@ export {
 } from '../matchers/regex';
 
 if (require.main === module) {
-  const code = runCli();
-  process.exit(code);
+  void runCli().then(code => { process.exitCode = code; });
 }

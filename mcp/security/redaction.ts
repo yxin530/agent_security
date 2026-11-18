@@ -10,6 +10,7 @@ export function safeError(error: unknown): string {
     'runtime event exceeds configured size limit',
     'rules path is not permitted by server configuration',
     'rate limit exceeded',
+    'scan queue full',
     'client not authorized',
     'rule was not found',
     'malformed JSON runtime event',

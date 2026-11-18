@@ -2,6 +2,12 @@
 
 ## 0.10.0
 
+- **M2: Safety & Performance (in progress)**:
+  - Added a regex abstraction with RE2-compatible pattern checks and nested-quantifier lint (`SAFE-01`, `SAFE-05`).
+  - CLI and MCP scans now run matching in terminable workers; runtime monitor events use a worker and enforce a byte cap (`SAFE-02`..`SAFE-04`, `MCP-03`).
+  - Added per-file, total-byte, file-count, ignore-pattern, minified-file, binary-file, and symlink protections to the shared walker (`ENG-08`, `ENG-09`, `MCP-05`).
+  - MCP scans use a bounded concurrency queue and deny sensitive credential paths (`MCP-02`, `MCP-07`).
+  - Performance gate remains open: local all-rule scan of 10,000 files / 51.2 MB took 38.1 s against the 20 s target; profile-based measurement awaits M3.
 - **M1: Correctness & Honesty**:
   - Engine now reports all matches per file (`ENG-01`), supporting `detection.report: first` (`ENG-02`) with accurate 1-indexed column locations pointing at non-negated matches (`ENG-06`).
   - Added deduplication (`ENG-03`) and stable 16-character SHA-256 finding fingerprints (`ENG-04`).
